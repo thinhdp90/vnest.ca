@@ -273,14 +273,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             break;
                         case 5:
                             String query = "so 22 Ngo 151 Ton That Tung Dong Da Ha Noi";
-                            intent.setPackage("com.google.android.apps.maps");
-                            startActivity(intent);
+                            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + query);
+                            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                            mapIntent.setPackage("com.google.android.apps.maps");
+                            startActivity(mapIntent);
                             break;
                         case 6:
+                            intent = new Intent(Intent.ACTION_VIEW);
+                            intent.setPackage("com.google.android.youtube");
+                            startActivity(intent);
                             break;
                         case 7:
-                            break;
-                        case 8:
+                            processing_text("Tìm ATM VPBank gần nhất");
                             break;
                         default:
                             textToSpeech.speak("Hiện tại bạn chưa thể sử dụng chức năng này", TextToSpeech.QUEUE_FLUSH, null);
