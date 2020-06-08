@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 import javax.xml.transform.Result;
 
-public class ResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class AdapterResult extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private ArrayList<ResultItem> mListItem = new ArrayList<>();
 
     public ArrayList<ResultItem> getListItem() {

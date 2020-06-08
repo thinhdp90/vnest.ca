@@ -54,7 +54,7 @@ import com.kwabenaberko.openweathermaplib.implementation.callbacks.CurrentWeathe
 import com.kwabenaberko.openweathermaplib.models.currentweather.CurrentWeather;
 import com.vnest.ca.R;
 import com.vnest.ca.adapters.DefaultAssistantAdapter;
-import com.vnest.ca.adapters.DefaultItemAdapter;
+import com.vnest.ca.feature.home.AdapterHomeItemDefault;
 import com.vnest.ca.adapters.ItemNavigationAdapter;
 import com.vnest.ca.adapters.MessageListAdapter;
 import com.vnest.ca.entity.Audio;
@@ -62,6 +62,7 @@ import com.vnest.ca.entity.Message;
 import com.vnest.ca.entity.MyAIContext;
 import com.vnest.ca.entity.Poi;
 import com.vnest.ca.entity.Youtube;
+import com.vnest.ca.feature.home.FragmentHome;
 import com.vnest.ca.triggerword.Trigger;
 
 import java.io.BufferedReader;
@@ -110,6 +111,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             "\"Navigation\" to nearest VPBank",
             "See more..."};
 
+    private FrameLayout fragmentContainer;
     private RecyclerView mMessageRecycler;
     private List<Message> messageList;
     private MessageListAdapter mMessageAdapter;
@@ -147,6 +149,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private View mCollapseView;
     private TextView processTextView;
     private Boolean isStartRecognizer;
+
+    public TextToSpeech getTextToSpeech() {
+        return textToSpeech;
+    }
+
+    public void setTextToSpeech(TextToSpeech textToSpeech) {
+        this.textToSpeech = textToSpeech;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -220,76 +230,29 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         messageList.add(new Message("Chào bạn, tôi có thể giúp gì cho bạn!", false, System.currentTimeMillis()));
 
         readCsvMessage();
-
-        setUiRecognition(this.getApplicationContext());
-
-
+        if (recognitionProgressView != null) {
+            setUiRecognition(this.getApplicationContext());
+        }
         final AIConfiguration config = new AIConfiguration("73cf2510f55c425eb5f5d8bb20d6d3e7",
                 AIConfiguration.SupportedLanguages.English,
                 AIConfiguration.RecognitionEngine.System);
         aiService = AIService.getService(this, config);
 
+
     }
 
     private void initView() {
+        fragmentContainer = findViewById(R.id.fragment_container);
         mRecyclerViewDefaultAssistant = findViewById(R.id.recycler_view_def_assistant);
         mRecyclerViewDefaultMainItem = findViewById(R.id.recyclerview_def_item);
         mRecyclerViewAfterProcessItem = findViewById(R.id.recyclerview_item_after_process);
         processTextView = findViewById(R.id.text_process);
         mCollapseView = findViewById(R.id.view_collapse);
         if (mRecyclerViewDefaultMainItem != null) {
-            mRecyclerViewDefaultMainItem.setAdapter(new DefaultItemAdapter(new DefaultItemAdapter.ItemClickListener() {
+            mRecyclerViewDefaultMainItem.setAdapter(new AdapterHomeItemDefault(this, textToSpeech, new AdapterHomeItemDefault.OnProcessingText() {
                 @Override
-                public void onItemClickListener(int position, String name) {
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    String link;
-                    switch (position) {
-                        case 0:
-                            link = "https://zingmp3.vn/album/Nhung-Bai-Hat-Hay-Nhat-Cua-Bang-Kieu-Bang-Kieu/ZWZ9DAEI.html";
-                            intent.setData(Uri.parse(link));
-                            intent.setPackage("com.zing.mp3");
-                            startActivity(intent);
-//                            sendMessage(audio.getAlias(), false);
-                            break;
-                        case 1:
-                            intent = new Intent(Intent.ACTION_VIEW);
-                            link = "https://vovgiaothong.vn/";
-                            intent.setData(Uri.parse(link));
-                            startActivity(intent);
-//                            search("https://vovgiaothong.vn/");
-                            break;
-                        case 2:
-                            processing_text("Tìm ATM gần nhất");
-                            break;
-                        case 3:
-                            link = "https://zingmp3.vn/tim-kiem/artist.html?q=B%C3%ADch%20Ph%C6%B0%C6%A1ng";
-                            intent.setData(Uri.parse(link));
-                            intent.setPackage("com.zing.mp3");
-                            startActivity(intent);
-                            break;
-                        case 4:
-                            intent.setPackage("com.google.android.apps.maps");
-                            startActivity(intent);
-                            break;
-                        case 5:
-                            String query = "so 22 Ngo 151 Ton That Tung Dong Da Ha Noi";
-                            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + query);
-                            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                            mapIntent.setPackage("com.google.android.apps.maps");
-                            startActivity(mapIntent);
-                            break;
-                        case 6:
-                            intent = new Intent(Intent.ACTION_VIEW);
-                            intent.setPackage("com.google.android.youtube");
-                            startActivity(intent);
-                            break;
-                        case 7:
-                            processing_text("Tìm ATM VPBank gần nhất");
-                            break;
-                        default:
-                            textToSpeech.speak("Hiện tại bạn chưa thể sử dụng chức năng này", TextToSpeech.QUEUE_FLUSH, null);
-                            break;
-                    }
+                public void process(String text) {
+                    processing_text(text);
                 }
             }));
             mRecyclerViewDefaultMainItem.setLayoutManager(new GridLayoutManager(this, 3));
@@ -306,7 +269,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 }
             }));
             mRecyclerViewDefaultAssistant.setLayoutManager(new LinearLayoutManager(this));
-            mRecyclerViewAfterProcessItem.setVisibility(View.GONE);
+            if (mRecyclerViewAfterProcessItem != null) {
+                mRecyclerViewAfterProcessItem.setVisibility(View.GONE);
+
+            }
+
+        }
+        if (fragmentContainer != null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new FragmentHome())
+                    .commit();
         }
 
     }
@@ -318,26 +290,30 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     private void initAction() {
-        btnListen.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d(LOG_TAG, "onClick listener....");
-                if (!getResources().getBoolean(R.bool.isTablet)) {
-                    isShouldProcessText = true;
-                    speechRecognizer.stopListening();
-                    startRecognition();
-                } else {
-                    if (isStartRecognizer == null || !isStartRecognizer) {
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+        if (btnListen != null) {
+            btnListen.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Log.d(LOG_TAG, "onClick listener....");
+                    if (!getResources().getBoolean(R.bool.isTablet)) {
                         isShouldProcessText = true;
                         speechRecognizer.stopListening();
                         startRecognition();
                     } else {
-                        finishRecognition();
+                        if (isStartRecognizer == null || !isStartRecognizer) {
+                            isShouldProcessText = true;
+                            speechRecognizer.stopListening();
+                            startRecognition();
+                        } else {
+                            finishRecognition();
+                        }
                     }
-                }
 
-            }
-        });
+                }
+            });
+
+        }
 
         if (mCollapseView != null) {
             mCollapseView.setOnClickListener(new View.OnClickListener() {
@@ -367,7 +343,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 //                        //Start service
 //                        Intent intent = new Intent(MainActivity.this, Trigger.class);
 //                        startService(intent);
-                        startRecognition();
+//                        startRecognition();
                         break;
                     case 3:
                         startDetectOpenVoiceRecognizer();
@@ -392,7 +368,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         weather.setLang(Lang.VIETNAMESE);
 
         // setup Speech Recognition
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
         recognitionProgressView.setSpeechRecognizer(speechRecognizer);
         recognitionProgressView.setRecognitionListener(new RecognitionListenerAdapter() {
             @Override
@@ -527,7 +502,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    private void processing_text(final String text) {
+    public void processing_text(final String text) {
         Log.d(LOG_TAG, "================= processing_text: " + text);
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -570,11 +545,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             case "OpenBankPlaceUnknownSpeech":
                             case "OpenDrinkPlaceUnknownSpeech":
                             case "OpenEatPlaceUnknownSpeech":
+                            case "OpenBankPlaceWhatever":
                                 search_unknown(text, aiRes);
                                 break;
                             case "OpenBankPlace":
 //                                break;
-                            case "OpenBankPlaceWhatever":
 //                                break;
                             case "OpenDrinkPlace":
                             case "OpenDrinkPlaceUnknown":
@@ -602,17 +577,21 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                                         intent.setPackage("com.zing.mp3");
                                         startActivity(intent);
                                         sendMessage(audio.getAlias(), false);
+                                        processing_text(audio.getAlias());
                                     } else {
                                         textSpeech = aiRes.getResult().getFulfillment().getSpeech();
                                         Log.d(LOG_TAG, "===== textSpeech:" + textSpeech);
                                         textToSpeech.speak(textSpeech, TextToSpeech.QUEUE_FLUSH, null);
                                         sendMessage(textSpeech, false);
+                                        processing_text(textSpeech);
+
                                     }
                                 } else {
                                     textSpeech = aiRes.getResult().getFulfillment().getSpeech();
                                     Log.d(LOG_TAG, "===== textSpeech:" + textSpeech);
                                     textToSpeech.speak(textSpeech, TextToSpeech.QUEUE_FLUSH, null);
                                     sendMessage(textSpeech, false);
+                                    processing_text(textSpeech);
                                 }
 
                                 break;
@@ -667,16 +646,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private void search_bank(String key, AIResponse aiResponse) {
         Log.e("Data", gson.toJson(aiResponse));
+
         try {
             JsonArray dataResponse = aiResponse.getResult().getFulfillment().getData().get("pois").getAsJsonArray();
-//        String string_start = "tìm";
-//        String string_end = "gần";
-//        int start = key.indexOf(string_start) + string_start.length();
-//        int end = key.indexOf(string_end);
-//        String location = key.substring(start, end);
             if (dataResponse.isJsonNull() || dataResponse.size() < 1) {
                 Log.e("Data", "null");
                 textToSpeech.speak("Không tìm thấy kết quả bạn mong muốn! Vui lòng thử lại", TextToSpeech.QUEUE_FLUSH, null);
+                sendMessage("Không tìm thấy kết quả bạn mong muốn! Vui lòng thử lại", false);
             } else if (dataResponse.size() >= 1 && getResources().getBoolean(R.bool.isTablet)) {
                 textToSpeech.speak("Vui lòng chọn nơi bạn muốn đến", TextToSpeech.QUEUE_FLUSH, null);
                 setProcessText("Vui lòng chọn nơi bạn muốn đến");
@@ -691,8 +667,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     @Override
                     public void onItemClick(Poi poi) {
                         Uri gmmIntentUri = Uri.parse("google.navigation:q=" + poi.getGps().getLatitude() + "," + poi.getGps().getLongitude());
-//            sendMessage();
-//            Uri gmmIntentUri = Uri.parse("geo:0,0q=?" + poi.getGps().getLatitude() + "," + poi.getGps().getLongitude() + "(" + poi.getTitle() + ")");
                         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                         mapIntent.setPackage("com.google.android.apps.maps");
                         startActivity(mapIntent);
@@ -708,8 +682,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 Poi poi = gson.fromJson(dataResponse.get(0), Poi.class);
                 Log.e("Gps", "geo:" + poi.getGps().getLatitude() + "," + poi.getGps().getLongitude());
                 Uri gmmIntentUri = Uri.parse("google.navigation:q=" + poi.getGps().getLatitude() + "," + poi.getGps().getLongitude());
-//            sendMessage();
-//            Uri gmmIntentUri = Uri.parse("geo:0,0q=?" + poi.getGps().getLatitude() + "," + poi.getGps().getLongitude() + "(" + poi.getTitle() + ")");
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                 mapIntent.setPackage("com.google.android.apps.maps");
                 startActivity(mapIntent);
@@ -725,7 +697,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         messageList.add(new Message(text, isUser, System.currentTimeMillis()));
         try {
-            processing_text(text);
+//            processing_text(text);
             setProcessText(text);
             mMessageAdapter.notifyDataSetChanged();
             mMessageRecycler.smoothScrollToPosition(messageList.size() - 1);
@@ -1097,7 +1069,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         dialog.setContentView(R.layout.weather);
 
         TextView tvLocation, tvDescription, tvTempMax, tvWind, tvHumidity, tvSunrise, tvSunset;
-
         tvLocation = dialog.findViewById(R.id.tvLocation);
         tvDescription = dialog.findViewById(R.id.tvDescription);
         tvTempMax = dialog.findViewById(R.id.tvTempMax);

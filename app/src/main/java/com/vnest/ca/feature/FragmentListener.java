@@ -1,4 +1,4 @@
-package com.vnest.ca.fragments;
+package com.vnest.ca.feature;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;

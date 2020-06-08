@@ -10,13 +10,14 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_def_assistant"
-        android:layout_width="102dp"
+        android:layout_width="205dp"
         android:layout_height="match_parent"
         android:background="#e3e3e3"
         android:paddingTop="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
 
     <View
         android:id="@+id/view_collapse"
@@ -34,62 +35,13 @@
         app:layout_constraintStart_toStartOf="@id/view_collapse"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageButton
-        android:id="@+id/btnListen"
-        android:layout_width="153dp"
-        android:layout_height="153dp"
-        android:layout_marginTop="80dp"
-        android:background="@drawable/ic_micbtn"
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/view_collapse"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.github.zagum.speechrecognitionview.RecognitionProgressView
-        android:id="@+id/recognition_view"
-        android:layout_width="362dp"
-        android:layout_height="81dp"
-        android:layout_marginBottom="20dp"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/recyclerview_def_item"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/view_collapse" />
-
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/text_process"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
-        android:gravity="center_horizontal"
-        android:lineSpacingExtra="20sp"
-        android:textColor="#00283a"
-        android:textSize="30sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/view_collapse"
-        app:layout_constraintTop_toBottomOf="@+id/btnListen"
-        tools:text="Hi Hoang Hai, I&apos;m FunCar Assistant \n Can I help you?" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerview_def_item"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:paddingHorizontal="20dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@+id/view_collapse" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerview_item_after_process"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="21dp"
-        android:layout_marginBottom="20dp"
-        android:maxHeight="300dp"
-        android:paddingHorizontal="20dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@+id/view_collapse"
-        app:layout_constraintTop_toBottomOf="@+id/recognition_view" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -15,4 +15,7 @@
         <item name="android:endColor">#00FFFF</item>
         <item name="android:angle">270</item>
     </color>
+    <color name="white">#FFFFFF</color>
+    <color name="soft_green">#72c472</color>
+    <color name="water_blue">#109ddc</color>>
 </resources>

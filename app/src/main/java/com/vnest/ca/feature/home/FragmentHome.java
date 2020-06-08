@@ -1,4 +1,4 @@
-package com.vnest.ca.fragments;
+package com.vnest.ca.feature.home;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -15,14 +15,23 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.vnest.ca.R;
 import com.vnest.ca.activities.MainActivity;
-import com.vnest.ca.adapters.DefaultItemAdapter;
 
 import java.util.Objects;
 
 public class FragmentHome extends Fragment {
+    private final String[] defItems = {"Open \"Bang Kieu\" Playlist",
+            "Open \"VOV giao thong\"",
+            "\"Navigation\" to nearest ATM",
+            "Open \"Bich Phuong\" via \"Zing MP3\"",
+            "Open Google Maps",
+            "\"Navigation\" to 22 Ngo 151 Ton That Tung Dong Da Ha Noi",
+            "Open \"Youtube\"",
+            "\"Navigation\" to nearest VPBank",
+            "See more..."};
+
     private Button btnListener;
     private RecyclerView mRecyclerView;
-    private DefaultItemAdapter adapter;
+    private AdapterHomeItemDefault adapter;
 
     @Nullable
     @Override
@@ -44,6 +53,9 @@ public class FragmentHome extends Fragment {
             public void onClick(View v) {
                 // start to listener fragment or hide/show recycler view
             }
+        });
+        adapter = new AdapterHomeItemDefault(getContext(), ((MainActivity) Objects.requireNonNull(getActivity())).getTextToSpeech(), text -> {
+            ((MainActivity) Objects.requireNonNull(getActivity())).processing_text(text);
         });
         mRecyclerView.setAdapter(adapter);
         mRecyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 3));

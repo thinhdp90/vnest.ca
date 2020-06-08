@@ -1,122 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:chatview="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ffffff"
+    android:background="@drawable/bg"
     tools:context=".activities.MainActivity">
 
-
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/reyclerview_message_list"
-        android:layout_width="match_parent"
+        android:id="@+id/recycler_view_def_assistant"
+        android:layout_width="205dp"
         android:layout_height="match_parent"
-        android:layout_marginBottom="150dp"
-        android:background="#ffffff"
-        app:stackFromEnd="true" />
+        android:background="#e3e3e3"
+        android:paddingTop="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
 
-    <!-- A horizontal line between the chatbox and RecyclerView -->
     <View
-        android:layout_width="0dp"
-        android:layout_height="2dp"
-        android:layout_marginBottom="0dp"
-        android:background="#dfdfdf"
-        app:layout_constraintBottom_toTopOf="@+id/layout_chatbox"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+        android:id="@+id/view_collapse"
+        android:layout_width="17dp"
+        android:layout_height="match_parent"
+        android:background="#c3c3c3"
+        app:layout_constraintStart_toEndOf="@+id/recycler_view_def_assistant" />
+
+    <View
+        android:layout_width="7dp"
+        android:layout_height="30dp"
+        android:background="@drawable/ic_collapse"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/view_collapse"
+        app:layout_constraintStart_toStartOf="@id/view_collapse"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom">
+        android:id="@+id/fragment_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/view_collapse"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <LinearLayout
-            android:id="@+id/layout_chatbox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="#ffffff"
-            android:minHeight="48dp"
-            android:orientation="horizontal"
-            android:visibility="invisible">
-
-            <EditText
-                android:id="@+id/edittext_chatbox"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_weight="1"
-                android:background="@android:color/transparent"
-                android:hint="Enter message"
-                android:maxLines="6" />
-
-            <!--<Button-->
-            <!--android:id="@+id/button_chatbox_send"-->
-            <!--android:text="SEND"-->
-            <!--android:textSize="14dp"-->
-            <!--android:background="?attr/selectableItemBackground"-->
-            <!--android:clickable="true"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:gravity="center" />-->
-            <ImageButton
-                android:id="@+id/button_chatbox_send"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:background="@null"
-                android:src="@drawable/ic_send" />
-
-
-            <ImageButton
-                android:id="@+id/btnListesInChatbox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:background="@null"
-                android:src="@mipmap/ic_microphone" />
-
-        </LinearLayout>
-
-        <FrameLayout
-            android:id="@+id/layout_speech"
-            android:layout_width="match_parent"
-            android:layout_height="150dp"
-            android:layout_gravity="bottom"
-            android:background="#f5f5f5">
-
-            <com.github.zagum.speechrecognitionview.RecognitionProgressView
-                android:id="@+id/recognition_view"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="gone" />
-
-
-            <LinearLayout
-                android:id="@+id/layout_speech_and_keyboard"
-                android:layout_width="200dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:background="@drawable/rounded_retangle_block"
-                android:gravity="center">
-
-                <ImageButton
-                    android:id="@+id/btnListen"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@null"
-                    android:src="@mipmap/ic_microphone" />
-
-            </LinearLayout>
-
-        </FrameLayout>
-
-
-    </FrameLayout>
-
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

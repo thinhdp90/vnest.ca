@@ -10,8 +10,8 @@
         android:id="@+id/btnVoice"
         android:layout_width="216dp"
         android:layout_height="216dp"
+        android:background="@drawable/group_2012"
         android:layout_marginTop="20dp"
-        android:background="@drawable/ic_group_2012"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -31,8 +31,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnVoice"
-        tools:text="Hi Hoang Hai, I&apos;m FunCar Assistant
-Can I help you?" />
+        tools:text="Hi" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerview_def_item"

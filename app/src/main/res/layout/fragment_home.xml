@@ -18,15 +18,15 @@
         android:id="@+id/btn_back"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="68dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginStart="21dp"
+        android:layout_marginTop="21dp"
         android:lineSpacingExtra="16sp"
         android:paddingStart="28dp"
         android:text="Back"
         android:textAllCaps="false"
         android:textSize="24sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/btnVoice" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <View
         android:layout_width="23dp"
