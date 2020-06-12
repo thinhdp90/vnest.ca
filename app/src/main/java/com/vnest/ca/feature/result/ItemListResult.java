@@ -23,6 +23,6 @@ public class ItemListResult implements ResultItem {
 
     @Override
     public int getItemViewType() {
-        return R.layout.item_result;
+        return R.layout.item_list_result;
     }
 }

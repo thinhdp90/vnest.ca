@@ -23,7 +23,7 @@
         android:gravity="start|center_vertical"
         android:lineSpacingExtra="4sp"
         android:textAllCaps="false"
-        android:background="@drawable/gradient_background"
+        android:background="@drawable/gradient_background_item_result"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

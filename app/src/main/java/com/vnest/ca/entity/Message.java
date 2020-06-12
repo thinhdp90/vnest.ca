@@ -1,8 +1,16 @@
 package com.vnest.ca.entity;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity
 public class Message {
+    @ColumnInfo(name = "message")
     private String message;
+    @ColumnInfo(name = "sender")
     private boolean sender;
+    @PrimaryKey
     private long createdAt;
 
     public Message(String message, boolean sender, long createdAt) {

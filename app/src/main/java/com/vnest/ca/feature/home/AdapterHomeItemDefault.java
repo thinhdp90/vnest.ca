@@ -10,31 +10,36 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.AppCompatTextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.vnest.ca.R;
 import com.vnest.ca.ViewPortType;
-import com.vnest.ca.entity.Poi;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.function.Consumer;
 
 public class AdapterHomeItemDefault extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private static final String[] defItems = {"Open \"Bang Kieu\" Playlist",
-            "Open \"VOV giao thong\"",
-            "\"Navigation\" to nearest ATM",
-            "Open \"Bich Phuong\" via \"Zing MP3\"",
-            "Open Google Maps",
-            "\"Navigation\" to 22 Ngo 151 Ton That Tung Dong Da Ha Noi",
-            "Open \"Youtube\"",
-            "\"Navigation\" to nearest VPBank",
-            "See more..."};
+    private static final String[] defItems = {"Chỉ đường đến hồ hoàn kiếm",
+            "Chỉ đường đến bến xe mỹ đình",
+            "Chỉ đường đến Landmark 72",
+            "Chỉ đường đến chợ Bến Thành",
+            "Chỉ đường đến nhà thờ Đức Bàm nhạc",
+            "Mở bài hãy trao cho anh",
+            "Mở bài Sầu tím thiệp hồng",
+            "Mở bài tàu anh qua núi",
+            "Video"};
 
     private ArrayList<String> defaultList = new ArrayList<>();
+
+    public ItemClickListener getItemClickListener() {
+        return itemClickListener;
+    }
+
+    public void setItemClickListener(ItemClickListener itemClickListener) {
+        this.itemClickListener = itemClickListener;
+    }
+
     private ItemClickListener itemClickListener;
     private Context context;
     private TextToSpeech textToSpeech;
