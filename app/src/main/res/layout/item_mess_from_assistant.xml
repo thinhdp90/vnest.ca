@@ -28,7 +28,6 @@
         android:background="@drawable/rounded_rectangle_orange"
         android:backgroundTint="@color/soft_green"
         android:gravity="center_vertical"
-        android:maxWidth="240dp"
         android:paddingHorizontal="16dp"
         android:paddingVertical="8dp"
         android:text="hi man, how are you?"

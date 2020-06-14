@@ -58,7 +58,7 @@ public class DefaultAssistantAdapter extends RecyclerView.Adapter<RecyclerView.V
         return defList.size();
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder {
         private AppCompatTextView itemName;
         private AppCompatImageView itemIcon;
 
@@ -74,13 +74,13 @@ public class DefaultAssistantAdapter extends RecyclerView.Adapter<RecyclerView.V
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    onItemClick.onClick(item.second);
+                    onItemClick.onClick(item.second, getAdapterPosition());
                 }
             });
         }
     }
 
     public interface OnItemClickListener {
-        void onClick(String text);
+        void onClick(String text, int position);
     }
 }

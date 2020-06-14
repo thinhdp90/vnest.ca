@@ -4,4 +4,5 @@
     <string name="content_description">Content</string>
     <string name="test">Test</string>
     <string name="back">Back</string>
+    <string name="load_more">See more coffee nearby…</string>
 </resources>

@@ -78,7 +78,6 @@ public class FragmentHome extends Fragment {
 
     private void initAction(View view) {
         viewModel.getMessage();
-
         textToSpeech = new TextToSpeech(getActivity(), status -> {
             Log.e("Status", status + "");
             if (status != TextToSpeech.ERROR) {
@@ -104,15 +103,8 @@ public class FragmentHome extends Fragment {
             finishRecognition();
 
         });
-        adapter = new AdapterHomeItemDefault(getContext(), ((MainActivity) Objects.requireNonNull(getActivity())).getTextToSpeech(), text -> {
-            ((MainActivity) Objects.requireNonNull(getActivity())).processing_text(text);
-        });
-        adapter.setItemClickListener((position, name) -> getMainActivity().processing_text(name));
-        mRecyclerView.setAdapter(adapter);
-        mRecyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 3));
 
         recognitionProgressView.setSpeechRecognizer(getMainActivity().speechRecognizer);
-        viewModel.getLiveDataProcessText().observe(getViewLifecycleOwner(), this::setAssistantProcessingText);
         viewModel.getListMessLiveData().observe(getViewLifecycleOwner(), list -> {
             if (list.size() > 1) {
                 startResultFragment();

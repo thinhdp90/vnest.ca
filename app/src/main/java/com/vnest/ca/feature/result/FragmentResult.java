@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -55,6 +56,9 @@ public class FragmentResult extends Fragment {
         mListResult = view.findViewById(R.id.mRecyclerView);
         btnVoice = view.findViewById(R.id.btnVoice);
         recognitionProgressView = view.findViewById(R.id.recognition_view);
+        recognitionProgressView.setOnClickListener(v -> {
+            finishRecognition();
+        });
         initRecognitionProgressView();
     }
 
@@ -83,6 +87,7 @@ public class FragmentResult extends Fragment {
             mListResult.scrollToPosition(adapter.getItemCount() - 1);
         });
         viewModel.getLiveDataProcessText().observe(getViewLifecycleOwner(), message -> {
+            viewModel.saveMessage(message);
             adapter.addItem(new ItemAssistant(message.getMessage(), message.isSender()));
             mListResult.scrollToPosition(adapter.getItemCount() - 1);
             finishRecognition();
@@ -138,6 +143,8 @@ public class FragmentResult extends Fragment {
     public void startRecognition() {
         Log.d(LOG_TAG, "start listener....");
         isStartingRecognitionProgressView = true;
+        btnVoice.setVisibility(View.GONE);
+        setMarginListResult(120);
         recognitionProgressView.play();
         recognitionProgressView.setVisibility(View.VISIBLE);
         getMainActivity().getSpeechRecognizerManager().startListening();
@@ -148,10 +155,19 @@ public class FragmentResult extends Fragment {
      */
     public void finishRecognition() {
         Log.d(LOG_TAG, "stop listener....");
+        btnVoice.setVisibility(View.VISIBLE);
+        setMarginListResult(37);
         isStartingRecognitionProgressView = false;
         recognitionProgressView.stop();
         recognitionProgressView.setVisibility(View.INVISIBLE);
         getMainActivity().getSpeechRecognizerManager().stopListening();
+    }
+
+    private void setMarginListResult(int topMargin) {
+        ConstraintLayout.LayoutParams layoutParams = (ConstraintLayout.LayoutParams) mListResult.getLayoutParams();
+        layoutParams.topMargin = (int) (getResources().getDisplayMetrics().scaledDensity * topMargin);
+        mListResult.scrollToPosition(adapter.getItemCount() - 1);
+        mListResult.setLayoutParams(layoutParams);
     }
 
     public MainActivity getMainActivity() {

@@ -29,6 +29,8 @@ android {
 
 dependencies {
     def room_version = "2.2.5"
+    def retrofitVersion = "2.8.1"
+    def logginInterceptor = "4.7.1"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:1.1.0'
@@ -60,6 +62,10 @@ dependencies {
     testImplementation "androidx.room:room-testing:$room_version"
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
+    implementation "com.squareup.retrofit2:retrofit:$retrofitVersion"
+    implementation "com.squareup.okhttp3:logging-interceptor:$logginInterceptor"
+    implementation "com.squareup.retrofit2:converter-gson:$retrofitVersion"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
 }
 ant.importBuild 'assets.xml'
 preBuild.dependsOn(list, checksum)

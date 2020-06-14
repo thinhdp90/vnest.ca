@@ -19,6 +19,7 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Rect;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -32,16 +33,20 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
+import android.view.DragEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.navigation.NavigationView;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -56,6 +61,8 @@ import com.vnest.ca.R;
 import com.vnest.ca.SpeechRecognizerManager;
 import com.vnest.ca.adapters.DefaultAssistantAdapter;
 import com.vnest.ca.adapters.ItemNavigationAdapter;
+import com.vnest.ca.api.model.CarInfo;
+import com.vnest.ca.api.reepository.CarRepo;
 import com.vnest.ca.entity.Audio;
 import com.vnest.ca.entity.Message;
 import com.vnest.ca.entity.MyAIContext;
@@ -99,15 +106,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.SET_ALARM};
-    private final String[] defItems = {"Open \"Bang Kieu\" Playlist",
-            "Open \"VOV giao thong\"",
-            "\"Navigation\" to nearest ATM",
-            "Open \"Bich Phuong\" via \"Zing MP3\"",
-            "Open Google Maps",
-            "\"Navigation\" to 22 Ngo 151 Ton That Tung Dong Da Ha Noi",
-            "Open \"Youtube\"",
-            "\"Navigation\" to nearest VPBank",
-            "See more..."};
     private View bottomSheetLayout;
     private BottomSheetBehavior bottomSheetBehavior;
     private FrameLayout fragmentContainer;
@@ -136,6 +134,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private View mCollapseView;
     private Boolean isStartRecognizer;
     private ViewModel viewModel;
+    private CarRepo carRepo = new CarRepo();
+    private NavigationView mDrawer;
 
     private SpeechRecognizerManager speechRecognizerManager;
 
@@ -158,14 +158,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
+        Log.e("Width, height", getResources().getDisplayMetrics().widthPixels + " " + getResources().getDisplayMetrics().heightPixels);
         viewModel = new ViewModelProvider(this, new ViewModelFactory(this)).get(ViewModel.class);
         if (checkPermission()) {
             initIfPermissionGranted();
         } else {
             requestPermission();
         }
-        Log.e("Width, height", getResources().getDisplayMetrics().widthPixels + " " + getResources().getDisplayMetrics().heightPixels);
 
 
     }
@@ -173,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private void initIfPermissionGranted() {
         init();
         initAction();
+
         mSpeechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
@@ -186,6 +188,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         initView();
         deviceId = Settings.Secure.getString(getContentResolver(),
                 Settings.Secure.ANDROID_ID);
+        carRepo.sendCarInfo(CarInfo.getDefault(deviceId));
         // Get phone's location
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
@@ -211,12 +214,35 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private void initView() {
         fragmentContainer = findViewById(R.id.fragment_container);
+//        mDrawer = findViewById(R.id.navigation_container);
         mRecyclerViewDefaultAssistant = findViewById(R.id.recycler_view_def_assistant);
         mCollapseView = findViewById(R.id.view_collapse);
         if (mRecyclerViewDefaultAssistant != null) {
-            mRecyclerViewDefaultAssistant.setAdapter(new DefaultAssistantAdapter(text -> {
+            mRecyclerViewDefaultAssistant.setAdapter(new DefaultAssistantAdapter((text, position) -> {
                 try {
-                    textToSpeech.speak("Bạn chưa thể sử dụng " + text, TextToSpeech.QUEUE_FLUSH, null);
+//                    textToSpeech.speak("Bạn chưa thể sử dụng " + text, TextToSpeech.QUEUE_FLUSH, null);
+                    contexts = null;
+                    String textSpeech = null;
+                    switch (position) {
+                        case 0:
+                            textSpeech = "Mở youtube";
+                            break;
+                        case 1:
+                            textSpeech = "Chỉ đường";
+                            break;
+                        case 2:
+                            textSpeech = "Lịch sử đổ xăng";
+                            break;
+                        case 3:
+                            textSpeech = "Lịch sử sửa chữa";
+                            break;
+                        default:
+                            break;
+                    }
+                    if (textSpeech != null) {
+                        processing_text(textSpeech, false);
+                        sendMessage(textSpeech, true);
+                    }
                 } catch (Exception e) {
                     Log.e(LOG_TAG, e.getMessage(), e);
                 }
@@ -228,26 +254,45 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         }
 
-        initBottomSheet();
         if (fragmentContainer != null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new FragmentHome())
                     .addToBackStack(MainActivity.class.getName())
                     .commit();
         }
-
+        initBottomSheet();
     }
 
     private void initBottomSheet() {
         bottomSheetLayout = findViewById(R.id.bottomSheet);
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
+        bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View view, int i) {
+
+            }
+
+            @Override
+            public void onSlide(@NonNull View view, float v) {
+                Log.e("Onslide", v + "");
+            }
+        });
         mRecyclerViewDefaultMainItem = bottomSheetLayout.findViewById(R.id.mRecyclerView);
-        AdapterHomeItemDefault adapter = new AdapterHomeItemDefault(this, getTextToSpeech(), this::processing_text);
-        adapter.setItemClickListener((position, name) -> processing_text(name));
+        AdapterHomeItemDefault adapter = new AdapterHomeItemDefault(this, getTextToSpeech(), text -> {
+            processing_text(text, true);
+        });
+        adapter.setItemClickListener((position, name) -> {
+            sendMessage(name, true);
+            contexts = null;
+            processing_text(name, true);
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        });
         mRecyclerViewDefaultMainItem.setAdapter(adapter);
         mRecyclerViewDefaultMainItem.setLayoutManager(new GridLayoutManager(this, 3));
         CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottomSheetLayout.getLayoutParams();
-        layoutParams.leftMargin = (int) (222*getResources().getDisplayMetrics().scaledDensity);
+        Log.e("Size", "" + mRecyclerViewDefaultAssistant.getWidth() + "  " + mCollapseView.getWidth());
+        mRecyclerViewDefaultAssistant.setVisibility(View.GONE);
+        layoutParams.leftMargin = (int) (17 * getResources().getDisplayMetrics().scaledDensity);
         bottomSheetLayout.setLayoutParams(layoutParams);
         bottomSheetLayout.requestLayout();
     }
@@ -265,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 String text = results.get(0);
                 isExcecuteText = true;
                 sendMessage(text, true);
-                processing_text(text);
+                processing_text(text, false);
                 Log.d(LOG_TAG, "onResults: " + text);
             }
 
@@ -287,6 +332,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 bottomSheetLayout.setLayoutParams(layoutParams);
             });
         }
+//        mCollapseView.setOnDragListener((view, dragEvent) -> {
+//            switch (dragEvent.getAction()) {
+//                case DragEvent.ACTION_DRAG_STARTED:
+//                    break;
+//            }
+//        });
 
         mHandler = new Handler(Looper.getMainLooper()) {
             @Override
@@ -317,135 +368,164 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         isStartRecognizer = false;
     }
 
-    public void processing_text(final String text) {
+    public void processing_text(final String text, Boolean resetContext) {
         Log.d(LOG_TAG, "================= processing_text: " + text);
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
+        Thread thread = new Thread(() -> {
+            try {
+                AIRequest aiRequest = new AIRequest(text);
+                if (!notchangesessionid || currentSessionId == null) {
+                    currentSessionId = deviceId + "#" + latitude + "-" + longitude;
+                }
+                aiRequest.setSessionId(currentSessionId);
+                if (contexts != null) {
+                    List<AIContext> rqContexts = new ArrayList<>();
+                    for (AIOutputContext oc : contexts) {
+                        rqContexts.add(new MyAIContext(oc));
+                    }
+                    aiRequest.setContexts(rqContexts);
+                }
+                aiRequest.setResetContexts(resetContext);
+                Log.d(LOG_TAG, "===== aiRequest:" + gson.toJson(aiRequest));
                 try {
-                    AIRequest aiRequest = new AIRequest(text);
-                    if (!notchangesessionid || currentSessionId == null) {
-                        currentSessionId = deviceId + "#" + latitude + "-" + longitude;
-                    }
-                    aiRequest.setSessionId(currentSessionId);
-                    if (contexts != null) {
-                        List<AIContext> rqContexts = new ArrayList<>();
-                        for (AIOutputContext oc : contexts) {
-                            rqContexts.add(new MyAIContext(oc));
-                        }
-                        aiRequest.setContexts(rqContexts);
-                    }
-
-                    Log.d(LOG_TAG, "===== aiRequest:" + gson.toJson(aiRequest));
+                    AIResponse aiRes = aiService.textRequest(aiRequest);
+                    Log.d(LOG_TAG, gson.toJson(aiRes));
+                    String action = aiRes.getResult().getAction();
+                    Log.d(LOG_TAG, "===== action:" + action);
+                    contexts = aiRes.getResult().getContexts();
+                    String code = null;
                     try {
-                        AIResponse aiRes = aiService.textRequest(aiRequest);
-                        Log.d(LOG_TAG, gson.toJson(aiRes));
-                        String action = aiRes.getResult().getAction();
-                        Log.d(LOG_TAG, "===== action:" + action);
-                        contexts = aiRes.getResult().getContexts();
-                        String code = null;
-                        try {
-                            notchangesessionid = aiRes.getResult().getFulfillment().getData().get("notchangesessionid").getAsBoolean();
-                            code = aiRes.getResult().getFulfillment().getData().get("code").toString().replace("\"", "");
-                            Log.d(LOG_TAG, "===== notchangesessionid: " + notchangesessionid);
-                        } catch (Exception e) {
-                            Log.e("Error", e.getMessage(), e);
-                        }
+                        notchangesessionid = aiRes.getResult().getFulfillment().getData().get("notchangesessionid").getAsBoolean();
+                        code = aiRes.getResult().getFulfillment().getData().get("code").toString().replace("\"", "");
+                        Log.d(LOG_TAG, "===== notchangesessionid: " + notchangesessionid);
+                    } catch (Exception e) {
+                        Log.e("Error", e.getMessage(), e);
+                    }
 
-                        Log.e("Actions", action);
-                        switch (action) {
-                            case "OpenBankPlaceUnknownSpeech":
-                            case "OpenDrinkPlaceUnknownSpeech":
-                            case "OpenEatPlaceUnknownSpeech":
-                            case "OpenBankPlaceWhatever":
-                                search_unknown(text, aiRes);
-                                break;
-                            case "OpenBankPlace":
-                            case "OpenDrinkPlace":
-                            case "OpenDrinkPlaceUnknown":
-                            case "OpenEatPlace":
-                            case "OpenEatPlaceUnknown":
-                            case "OpenEatPlaceWhatever":
-                            case "OpenBankPlaceUnknown":
-                            case "OpenPlace":
-                            case "OpenMapTo":
-                                search_bank(action, aiRes);
-                                break;
-                            case "input.unknown":
-                                String textSpeech = aiRes.getResult().getFulfillment().getSpeech();
-                                Log.d(LOG_TAG, "===== textSpeech:" + textSpeech);
-                                textToSpeech.speak(textSpeech, TextToSpeech.QUEUE_FLUSH, null);
-                                android.os.Message message = mHandler.obtainMessage(RESTART_VOICE_RECOGNITION);
-                                message.sendToTarget();
-                                sendMessage(textSpeech, false);
-                                break;
-                            case "Mp3":
-                                if (code != null) {
-                                    Log.e(LOG_TAG, "======= code:" + code);
-                                    if (code.equals("1")) {
-                                        Audio audio = gson.fromJson(
-                                                aiRes.getResult().getFulfillment().getData().get("audios").getAsJsonArray().get(0).toString(), Audio.class);
-                                        sendMessage(audio.getAlias(), false);
-                                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                                        intent.setData(Uri.parse(audio.getLink()));
-                                        intent.setPackage("com.zing.mp3");
-                                        startActivity(intent);
+                    Log.e("Actions", action);
+                    switch (action) {
+                        case "OpenBankPlaceUnknownSpeech":
+                        case "OpenDrinkPlaceUnknownSpeech":
+                        case "OpenEatPlaceUnknownSpeech":
+                        case "OpenMapToSpeech":
+                        case "OpenBankPlaceWhatever":
+                            search_unknown(text, aiRes);
+                            break;
+                        case "OpenBankPlace":
+                        case "OpenDrinkPlace":
+                        case "OpenDrinkPlaceUnknown":
+                        case "OpenEatPlace":
+                        case "OpenEatPlaceUnknown":
+                        case "OpenEatPlaceWhatever":
+                        case "OpenBankPlaceUnknown":
+                        case "OpenPlace":
+                        case "OpenMapTo":
+                            search_bank(action, aiRes);
+                            break;
+                        case "input.unknown":
+                            String textSpeech = aiRes.getResult().getFulfillment().getSpeech();
+                            Log.d(LOG_TAG, "===== textSpeech:" + textSpeech);
+                            textToSpeech.speak(textSpeech, TextToSpeech.QUEUE_FLUSH, null);
+                            android.os.Message message = mHandler.obtainMessage(RESTART_VOICE_RECOGNITION);
+                            message.sendToTarget();
+                            sendMessage(textSpeech, false);
+                            break;
+                        case "Mp3":
+                            if (code != null) {
+                                Log.e(LOG_TAG, "======= code:" + code);
+                                if (code.equals("1")) {
+                                    Audio audio = gson.fromJson(
+                                            aiRes.getResult().getFulfillment().getData().get("audios").getAsJsonArray().get(0).toString(), Audio.class);
+                                    sendMessage(audio.getAlias(), false);
+                                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                                    intent.setData(Uri.parse(audio.getLink()));
+                                    intent.setPackage("com.zing.mp3");
+                                    startActivity(intent);
 //                                        processing_text(audio.getAlias());
-                                    } else {
-                                        textSpeech = aiRes.getResult().getFulfillment().getSpeech();
-                                        Log.e(LOG_TAG, "===== textSpeech:" + textSpeech);
-                                        textToSpeech.speak(textSpeech, TextToSpeech.QUEUE_FLUSH, null);
-                                        sendMessage(textSpeech, false);
-//                                        processing_text(textSpeech);
-                                        restartListeningAfterProcess();
-                                    }
                                 } else {
                                     textSpeech = aiRes.getResult().getFulfillment().getSpeech();
                                     Log.e(LOG_TAG, "===== textSpeech:" + textSpeech);
                                     textToSpeech.speak(textSpeech, TextToSpeech.QUEUE_FLUSH, null);
                                     sendMessage(textSpeech, false);
-//                                    processing_text(textSpeech);
+//                                        processing_text(textSpeech);
                                     restartListeningAfterProcess();
                                 }
+                            } else {
+                                textSpeech = aiRes.getResult().getFulfillment().getSpeech();
+                                Log.e(LOG_TAG, "===== textSpeech:" + textSpeech);
+                                textToSpeech.speak(textSpeech, TextToSpeech.QUEUE_FLUSH, null);
+                                sendMessage(textSpeech, false);
+//                                    processing_text(textSpeech);
+                                restartListeningAfterProcess();
+                            }
 
-                                break;
-                            case "Youtube":
-                                Youtube video = gson.fromJson(
-                                        aiRes.getResult().getFulfillment().getData().get("videos").getAsJsonArray().get(0).toString(), Youtube.class);
-                                Intent intent = new Intent(Intent.ACTION_VIEW);
-                                intent.setData(Uri.parse(video.getHref()));
-                                intent.setPackage("com.google.android.youtube");
-                                startActivity(intent);
-                                sendMessage(video.getHref(), false);
-                                break;
-                            default:
-                                if (text.toLowerCase().contains("thời tiết")) {
-                                    weather();
-                                } else if (text.toLowerCase().contains("tìm")) {
-                                    search(text);
-                                } else {
-                                    textToSpeech.speak("Hiện không tìm thấy thông tin", TextToSpeech.QUEUE_FLUSH, null);
-                                }
-                        }
-
-
-                    } catch (AIServiceException e) {
-                        Log.e(LOG_TAG, e.getMessage(), e);
+                            break;
+                        case "Youtube":
+                            search_youtube(aiRes, code);
+                            break;
+                        default:
+                            if (text.toLowerCase().contains("thời tiết")) {
+                                weather();
+                            } else if (text.toLowerCase().contains("tìm")) {
+                                search(text);
+                            } else {
+                                textToSpeech.speak("Hiện không tìm thấy thông tin", TextToSpeech.QUEUE_FLUSH, null);
+                            }
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    isExcecuteText = false;
+
+
+                } catch (AIServiceException e) {
+                    Log.e(LOG_TAG, e.getMessage(), e);
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                isExcecuteText = false;
             }
         });
         thread.start();
+    }
+
+    private void search_youtube(AIResponse aiRes, String code) throws InterruptedException {
+        if (code.trim().equals("0")) {
+            String speech = aiRes.getResult().getFulfillment().getSpeech();
+            speak(speech);
+            sendMessage(speech, false);
+            restartListeningAfterProcess();
+        } else {
+            aiRes.getResult().getFulfillment().getData().get("videos");
+            Youtube video = gson.fromJson(
+                    aiRes.getResult().getFulfillment().getData().get("videos").getAsJsonArray().get(0).toString(), Youtube.class);
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(video.getHref()));
+            intent.setPackage("com.google.android.youtube");
+            startActivity(intent);
+            sendMessage(video.getHref(), false);
+        }
     }
 
     private void restartListeningAfterProcess() throws InterruptedException {
         Thread.sleep(3000);
         android.os.Message message = mHandler.obtainMessage(RESTART_VOICE_RECOGNITION);
         message.sendToTarget();
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+
+                Rect outRect = new Rect();
+                bottomSheetLayout.getGlobalVisibleRect(outRect);
+
+                if (!outRect.contains((int) ev.getRawX(), (int) ev.getRawY()))
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+    private void speak(String key) {
+        textToSpeech.speak(key, TextToSpeech.QUEUE_FLUSH, null);
     }
 
     private void search_unknown(String text, AIResponse aiRes) throws InterruptedException {
@@ -465,25 +545,22 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 sendMessage("Không tìm thấy kết quả bạn mong muốn! Vui lòng thử lại", false);
             } else if (dataResponse.size() >= 1 && getResources().getBoolean(R.bool.isTablet)) {
 
-                sendMessage("Vui lòng chọn nơi bạn muốn đến", false);
                 final ArrayList<Poi> poiArrayList = new ArrayList<>();
                 for (JsonElement element : dataResponse) {
                     poiArrayList.add(gson.fromJson(element, Poi.class));
                 }
-                ItemNavigationAdapter adapter = new ItemNavigationAdapter(new ItemNavigationAdapter.ItemCLickListener() {
-                    @Override
-                    public void onItemClick(Poi poi) {
-                        NavigationUtil.navigationToPoint(poi, MainActivity.this);
-                    }
-                });
+                ItemNavigationAdapter adapter = new ItemNavigationAdapter(poi -> NavigationUtil.navigationToPoint(poi, MainActivity.this));
                 if (key.toLowerCase().equals("openmapto")) {
                     try {
+                        sendMessage("Di chuyển tới " + poiArrayList.get(0).getTitle() + "...", false);
+                        Thread.sleep(1000);
                         NavigationUtil.navigationToPoint(poiArrayList.get(0), MainActivity.this);
                     } catch (Exception e) {
                         textToSpeech.speak("Không tìm thấy điểm tới", TextToSpeech.QUEUE_FLUSH, null);
                     }
                 } else {
                     textToSpeech.speak("Vui lòng chọn nơi bạn muốn đến", TextToSpeech.QUEUE_FLUSH, null);
+                    sendMessage("Vui lòng chọn nơi bạn muốn đến", false);
                     adapter.setData(poiArrayList);
                     android.os.Message message = mHandler.obtainMessage(UPDATE_AFTER_PROCESS_TEXT);
                     message.obj = poiArrayList;
@@ -605,7 +682,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             Intent intent = new Intent(this, Trigger.class);
             startService(intent);
         }
-
 
     }
 
@@ -815,5 +891,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @Override
     public void onProviderDisabled(String s) {
 
+    }
+
+    public int getStatusBar() {
+        Rect rectangle = new Rect();
+        Window window = getWindow();
+        window.getDecorView().getWindowVisibleDisplayFrame(rectangle);
+        int statusBarHeight = rectangle.top;
+        int contentViewTop = window.findViewById(Window.ID_ANDROID_CONTENT).getTop();
+        return contentViewTop - statusBarHeight;
     }
 }

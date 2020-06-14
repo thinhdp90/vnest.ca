@@ -22,10 +22,6 @@ class BottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        view.mRecyclerView.adapter
-        val adapter = AdapterHomeItemDefault(context, (Objects.requireNonNull(activity) as MainActivity).getTextToSpeech(), OnProcessingText { text: String? -> (Objects.requireNonNull(activity) as MainActivity).processing_text(text) })
-        adapter.itemClickListener = ItemClickListener { _: Int, name: String? -> (Objects.requireNonNull(activity) as MainActivity).processing_text(name) }
-        view.mRecyclerView.adapter = adapter
-        view.mRecyclerView.layoutManager = GridLayoutManager(requireContext(), 3)
+
     }
 }

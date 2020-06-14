@@ -53,6 +53,7 @@ class SpeechRecognitionListener(
             SpeechRecognizer.ERROR_NETWORK -> {
 
             }
+
         }
 
     }
