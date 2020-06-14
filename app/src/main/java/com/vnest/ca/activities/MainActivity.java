@@ -74,6 +74,7 @@ import com.vnest.ca.entity.Poi;
 import com.vnest.ca.entity.Youtube;
 import com.vnest.ca.feature.home.AdapterHomeItemDefault;
 import com.vnest.ca.feature.home.FragmentHome;
+import com.vnest.ca.feature.result.FragmentResult;
 import com.vnest.ca.triggerword.Trigger;
 import com.vnest.ca.util.NavigationUtil;
 
@@ -247,6 +248,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     if (textSpeech != null) {
                         processing_text(textSpeech, false);
                         sendMessage(textSpeech, true);
+                        startResultFragment();
+                        mDrawerLayout.closeDrawer(Gravity.LEFT);
                     }
                 } catch (Exception e) {
                     Log.e(LOG_TAG, e.getMessage(), e);
@@ -299,6 +302,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         mRecyclerViewDefaultMainItem = bottomSheetLayout.findViewById(R.id.mRecyclerView);
         AdapterHomeItemDefault adapter = new AdapterHomeItemDefault(this, getTextToSpeech(), text -> {
             processing_text(text, true);
+            startResultFragment();
         });
         adapter.setItemClickListener((position, name) -> {
             sendMessage(name, true);
@@ -312,6 +316,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         layoutParams.leftMargin = (int) (17 * getResources().getDisplayMetrics().scaledDensity);
         bottomSheetLayout.setLayoutParams(layoutParams);
         bottomSheetLayout.requestLayout();
+    }
+
+    public void startResultFragment() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .add(R.id.fragment_container, new FragmentResult())
+                .addToBackStack(MainActivity.class.getName())
+                .commit();
     }
 
     private void initAction() {
