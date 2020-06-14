@@ -4,9 +4,12 @@ import ai.api.model.AIContext;
 import ai.api.model.AIOutputContext;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -34,6 +37,7 @@ import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.DragEvent;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -135,7 +139,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private Boolean isStartRecognizer;
     private ViewModel viewModel;
     private CarRepo carRepo = new CarRepo();
-    private NavigationView mDrawer;
+    private ConstraintLayout mDrawer;
+    private DrawerLayout mDrawerLayout;
+    private CoordinatorLayout mainLayout;
 
     private SpeechRecognizerManager speechRecognizerManager;
 
@@ -214,7 +220,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private void initView() {
         fragmentContainer = findViewById(R.id.fragment_container);
-//        mDrawer = findViewById(R.id.navigation_container);
         mRecyclerViewDefaultAssistant = findViewById(R.id.recycler_view_def_assistant);
         mCollapseView = findViewById(R.id.view_collapse);
         if (mRecyclerViewDefaultAssistant != null) {
@@ -251,6 +256,20 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mRecyclerViewDefaultAssistant.getContext(),
                     ((GridLayoutManager) Objects.requireNonNull(mRecyclerViewDefaultAssistant.getLayoutManager())).getOrientation());
             mRecyclerViewDefaultAssistant.addItemDecoration(dividerItemDecoration);
+
+            mDrawer = findViewById(R.id.drawer);
+            mDrawerLayout = findViewById(R.id.drawerLayout);
+            mainLayout = findViewById(R.id.mainLayout);
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
+                @Override
+                public void onDrawerSlide(View drawerView, float slideOffset) {
+                    super.onDrawerSlide(drawerView, slideOffset);
+                    float slideX = drawerView.getWidth() * slideOffset;
+                    mainLayout.setTranslationX(slideX);
+                }
+            };
+            toggle.syncState();
+            mDrawerLayout.addDrawerListener(toggle);
 
         }
 
@@ -290,8 +309,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         mRecyclerViewDefaultMainItem.setAdapter(adapter);
         mRecyclerViewDefaultMainItem.setLayoutManager(new GridLayoutManager(this, 3));
         CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottomSheetLayout.getLayoutParams();
-        Log.e("Size", "" + mRecyclerViewDefaultAssistant.getWidth() + "  " + mCollapseView.getWidth());
-        mRecyclerViewDefaultAssistant.setVisibility(View.GONE);
         layoutParams.leftMargin = (int) (17 * getResources().getDisplayMetrics().scaledDensity);
         bottomSheetLayout.setLayoutParams(layoutParams);
         bottomSheetLayout.requestLayout();
@@ -321,15 +338,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }, speechRecognizer);
         if (mCollapseView != null) {
             mCollapseView.setOnClickListener(view -> {
-                CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottomSheetLayout.getLayoutParams();
-                if (mRecyclerViewDefaultAssistant.getVisibility() == View.GONE) {
-                    layoutParams.leftMargin = mCollapseView.getWidth() + mRecyclerViewDefaultAssistant.getWidth();
-                    mRecyclerViewDefaultAssistant.setVisibility(View.VISIBLE);
+                if (mDrawerLayout.isDrawerOpen(mDrawer)) {
+                    mDrawerLayout.closeDrawer(Gravity.LEFT);
                 } else {
-                    layoutParams.leftMargin = mCollapseView.getWidth();
-                    mRecyclerViewDefaultAssistant.setVisibility(View.GONE);
+                    mDrawerLayout.openDrawer(Gravity.LEFT);
                 }
-                bottomSheetLayout.setLayoutParams(layoutParams);
             });
         }
 //        mCollapseView.setOnDragListener((view, dragEvent) -> {

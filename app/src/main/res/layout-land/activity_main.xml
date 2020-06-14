@@ -3,10 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:chatview="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/mainLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -16,16 +19,25 @@
             android:id="@+id/bottomSheet"
             layout="@layout/bottom_sheet" />
 
-<!--        <com.google.android.material.navigation.NavigationView-->
-<!--            android:id="@+id/navigation_container"-->
-<!--            android:layout_width="222dp"-->
-<!--            android:layout_height="match_parent">-->
-<!--            <include-->
-<!--                layout="@layout/drawer_layout"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="match_parent" />-->
-<!--        </com.google.android.material.navigation.NavigationView>-->
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/drawer"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view_def_assistant"
+            android:layout_width="205dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/background_8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
 </androidx.drawerlayout.widget.DrawerLayout>

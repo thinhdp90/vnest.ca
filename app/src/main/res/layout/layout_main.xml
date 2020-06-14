@@ -8,22 +8,12 @@
     android:background="@drawable/bg"
     tools:context=".activities.MainActivity">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view_def_assistant"
-        android:layout_width="205dp"
-        android:layout_height="match_parent"
-        android:background="@drawable/background_8dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <View
         android:id="@+id/view_collapse"
         android:layout_width="17dp"
         android:layout_height="match_parent"
         android:background="@drawable/fradient_background_collapse"
-        app:layout_constraintStart_toEndOf="@+id/recycler_view_def_assistant" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <View
         android:layout_width="7dp"
