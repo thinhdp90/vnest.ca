@@ -14,7 +14,7 @@ class SpeechRecognizerManager(
         var speechRecognizer: SpeechRecognizer
 ) {
     private var speechIntent: Intent
-    private var timeOut = 3000
+    private var timeOut = 20000
     private var isListening = false
     private var mAudioManager: AudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var streamVolume: Int? = null
@@ -54,13 +54,23 @@ class SpeechRecognizerManager(
     }
 
     fun startListening() {
-        if (!isListening) {
-            speechRecognizer.stopListening()
-            speechRecognizer.cancel()
-            speechRecognizer.startListening(speechIntent)
-            isListening = true
+        try {
+            if (!isListening) {
+                speechRecognizer.stopListening()
+                speechRecognizer.cancel()
+                speechRecognizer.startListening(speechIntent)
+                isListening = true
 
+            }
+        } catch (e: Exception) {
+            recreateVoicRecog()
         }
+
+    }
+
+    fun recreateVoicRecog() {
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
+        speechRecognizer.setRecognitionListener(speechListener)
     }
 
     fun stopListening() {

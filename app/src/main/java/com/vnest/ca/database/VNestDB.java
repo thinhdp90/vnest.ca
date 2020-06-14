@@ -17,7 +17,7 @@ public abstract class VNestDB extends RoomDatabase {
 
     public static VNestDB getInstances(Context context) {
         if (INSTANCE == null) {
-            INSTANCE = Room.databaseBuilder(context.getApplicationContext(), VNestDB.class, "Vnest_DB")
+            INSTANCE = Room.databaseBuilder(context.getApplicationContext(), VNestDB.class, "VnestDB")
                     .fallbackToDestructiveMigration()
                     .build();
         }

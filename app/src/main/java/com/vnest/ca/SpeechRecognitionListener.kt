@@ -14,7 +14,8 @@ class SpeechRecognitionListener(
         var onErrorNoMatch: () -> Unit
 ) : RecognitionListenerAdapter() {
     private val volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-//    override fun onReadyForSpeech(params: Bundle?) {
+
+    //    override fun onReadyForSpeech(params: Bundle?) {
 //        Log.e("Onready for speech", "Onready for speech")
 //    }
 //
@@ -32,22 +33,20 @@ class SpeechRecognitionListener(
 
     override fun onBeginningOfSpeech() {
         Log.e("onBeginningOfSpeech", "onBeginningOfSpeech")
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
+        resetVolume()
     }
 
     override fun onEndOfSpeech() {
         Log.e("onEndOfSpeech", "onEndOfSpeech")
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
+        resetVolume()
     }
 
     @Synchronized
     override fun onError(error: Int) {
         Log.e("OnError", error.toString())
         when (error) {
-            SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> {
 
-            }
-            SpeechRecognizer.ERROR_NO_MATCH -> {
+            SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
                 onErrorNoMatch()
             }
@@ -68,12 +67,16 @@ class SpeechRecognitionListener(
     }
 
     override fun onResults(results: Bundle?) {
+        resetVolume()
         if (results != null) {
             val text = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
             if (text != null) {
                 mListener.onResults(text)
             }
         }
+    }
+    private fun resetVolume() {
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
     }
 
 }

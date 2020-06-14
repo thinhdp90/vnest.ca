@@ -96,12 +96,13 @@ public class FragmentResult extends Fragment {
             mListResult.scrollToPosition(adapter.getItemCount() - 1);
         });
         viewModel.getLiveDataStartRecord().observe(getViewLifecycleOwner(), aBoolean -> {
-            if(aBoolean == null) return;
+            if (aBoolean == null) return;
             if (aBoolean) {
                 startRecognition();
             } else {
                 finishRecognition();
             }
+            viewModel.getLiveDataStartRecord().postValue(null);
         });
     }
 

@@ -173,14 +173,6 @@ public class FragmentHome extends Fragment {
         viewModel.saveMessage(message);
     }
 
-    public void startRecognition() {
-        Log.d(LOG_TAG, "start listener....");
-        isStartingRecognitionProgressView = true;
-        recognitionProgressView.play();
-        recognitionProgressView.setVisibility(View.VISIBLE);
-        getMainActivity().getSpeechRecognizer().startListening(getMainActivity().getmSpeechRecognizerIntent());
-    }
-
     /**
      * Finish Speech Recognition
      */

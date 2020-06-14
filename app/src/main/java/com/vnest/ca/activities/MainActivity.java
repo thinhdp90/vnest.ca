@@ -5,16 +5,14 @@ import ai.api.model.AIOutputContext;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.app.SearchManager;
@@ -27,7 +25,6 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
@@ -40,48 +37,37 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.github.zagum.speechrecognitionview.RecognitionProgressView;
-import com.github.zagum.speechrecognitionview.adapters.RecognitionListenerAdapter;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.kwabenaberko.openweathermaplib.constants.Lang;
 import com.kwabenaberko.openweathermaplib.constants.Units;
 import com.kwabenaberko.openweathermaplib.implementation.OpenWeatherMapHelper;
 import com.kwabenaberko.openweathermaplib.implementation.callbacks.CurrentWeatherCallback;
-import com.kwabenaberko.openweathermaplib.models.common.Main;
 import com.kwabenaberko.openweathermaplib.models.currentweather.CurrentWeather;
 import com.vnest.ca.OnResultReady;
 import com.vnest.ca.R;
 import com.vnest.ca.SpeechRecognizerManager;
 import com.vnest.ca.adapters.DefaultAssistantAdapter;
-import com.vnest.ca.feature.home.AdapterHomeItemDefault;
 import com.vnest.ca.adapters.ItemNavigationAdapter;
-import com.vnest.ca.adapters.MessageListAdapter;
 import com.vnest.ca.entity.Audio;
 import com.vnest.ca.entity.Message;
 import com.vnest.ca.entity.MyAIContext;
 import com.vnest.ca.entity.Poi;
 import com.vnest.ca.entity.Youtube;
+import com.vnest.ca.feature.home.AdapterHomeItemDefault;
 import com.vnest.ca.feature.home.FragmentHome;
 import com.vnest.ca.triggerword.Trigger;
 import com.vnest.ca.util.NavigationUtil;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -90,7 +76,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 import ai.api.AIServiceException;
 import ai.api.android.AIConfiguration;
@@ -123,7 +108,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             "Open \"Youtube\"",
             "\"Navigation\" to nearest VPBank",
             "See more..."};
-
+    private View bottomSheetLayout;
+    private BottomSheetBehavior bottomSheetBehavior;
     private FrameLayout fragmentContainer;
 
     public TextToSpeech textToSpeech;
@@ -226,7 +212,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private void initView() {
         fragmentContainer = findViewById(R.id.fragment_container);
         mRecyclerViewDefaultAssistant = findViewById(R.id.recycler_view_def_assistant);
-        mRecyclerViewDefaultMainItem = findViewById(R.id.recyclerview_def_item);
         mCollapseView = findViewById(R.id.view_collapse);
         if (mRecyclerViewDefaultAssistant != null) {
             mRecyclerViewDefaultAssistant.setAdapter(new DefaultAssistantAdapter(text -> {
@@ -243,6 +228,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         }
 
+        initBottomSheet();
         if (fragmentContainer != null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new FragmentHome())
@@ -250,6 +236,20 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     .commit();
         }
 
+    }
+
+    private void initBottomSheet() {
+        bottomSheetLayout = findViewById(R.id.bottomSheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
+        mRecyclerViewDefaultMainItem = bottomSheetLayout.findViewById(R.id.mRecyclerView);
+        AdapterHomeItemDefault adapter = new AdapterHomeItemDefault(this, getTextToSpeech(), this::processing_text);
+        adapter.setItemClickListener((position, name) -> processing_text(name));
+        mRecyclerViewDefaultMainItem.setAdapter(adapter);
+        mRecyclerViewDefaultMainItem.setLayoutManager(new GridLayoutManager(this, 3));
+        CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottomSheetLayout.getLayoutParams();
+        layoutParams.leftMargin = (int) (222*getResources().getDisplayMetrics().scaledDensity);
+        bottomSheetLayout.setLayoutParams(layoutParams);
+        bottomSheetLayout.requestLayout();
     }
 
     private void initAction() {
@@ -276,11 +276,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }, speechRecognizer);
         if (mCollapseView != null) {
             mCollapseView.setOnClickListener(view -> {
+                CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottomSheetLayout.getLayoutParams();
                 if (mRecyclerViewDefaultAssistant.getVisibility() == View.GONE) {
+                    layoutParams.leftMargin = mCollapseView.getWidth() + mRecyclerViewDefaultAssistant.getWidth();
                     mRecyclerViewDefaultAssistant.setVisibility(View.VISIBLE);
                 } else {
+                    layoutParams.leftMargin = mCollapseView.getWidth();
                     mRecyclerViewDefaultAssistant.setVisibility(View.GONE);
                 }
+                bottomSheetLayout.setLayoutParams(layoutParams);
             });
         }
 
@@ -377,31 +381,31 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                                 break;
                             case "Mp3":
                                 if (code != null) {
-                                    Log.d(LOG_TAG, "======= code:" + code);
+                                    Log.e(LOG_TAG, "======= code:" + code);
                                     if (code.equals("1")) {
                                         Audio audio = gson.fromJson(
                                                 aiRes.getResult().getFulfillment().getData().get("audios").getAsJsonArray().get(0).toString(), Audio.class);
+                                        sendMessage(audio.getAlias(), false);
                                         Intent intent = new Intent(Intent.ACTION_VIEW);
-//                                        https://zingmp3.vn/album/Nhung-Bai-Hat-Hay-Nhat-Cua-Bang-Kieu-Bang-Kieu/ZWZ9DAEI.html
                                         intent.setData(Uri.parse(audio.getLink()));
                                         intent.setPackage("com.zing.mp3");
                                         startActivity(intent);
-                                        sendMessage(audio.getAlias(), false);
-                                        processing_text(audio.getAlias());
+//                                        processing_text(audio.getAlias());
                                     } else {
                                         textSpeech = aiRes.getResult().getFulfillment().getSpeech();
-                                        Log.d(LOG_TAG, "===== textSpeech:" + textSpeech);
+                                        Log.e(LOG_TAG, "===== textSpeech:" + textSpeech);
                                         textToSpeech.speak(textSpeech, TextToSpeech.QUEUE_FLUSH, null);
                                         sendMessage(textSpeech, false);
-                                        processing_text(textSpeech);
-
+//                                        processing_text(textSpeech);
+                                        restartListeningAfterProcess();
                                     }
                                 } else {
                                     textSpeech = aiRes.getResult().getFulfillment().getSpeech();
-                                    Log.d(LOG_TAG, "===== textSpeech:" + textSpeech);
+                                    Log.e(LOG_TAG, "===== textSpeech:" + textSpeech);
                                     textToSpeech.speak(textSpeech, TextToSpeech.QUEUE_FLUSH, null);
                                     sendMessage(textSpeech, false);
-                                    processing_text(textSpeech);
+//                                    processing_text(textSpeech);
+                                    restartListeningAfterProcess();
                                 }
 
                                 break;
@@ -438,10 +442,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         thread.start();
     }
 
-    private void startDetectOpenVoiceRecognizer() {
-        isShouldProcessText = false;
-//        isExcecuteText = true;
-        speechRecognizer.startListening(mSpeechRecognizerIntent);
+    private void restartListeningAfterProcess() throws InterruptedException {
+        Thread.sleep(3000);
+        android.os.Message message = mHandler.obtainMessage(RESTART_VOICE_RECOGNITION);
+        message.sendToTarget();
     }
 
     private void search_unknown(String text, AIResponse aiRes) throws InterruptedException {
@@ -449,9 +453,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         viewModel.getLiveDataTextToSpeech().postValue(textSpeech);
 //        textToSpeech.speak(textSpeech, TextToSpeech.QUEUE_FLUSH, null);
         sendMessage(textSpeech, false);
-        Thread.sleep(3000);
-        android.os.Message message = mHandler.obtainMessage(RESTART_VOICE_RECOGNITION);
-        message.sendToTarget();
+        restartListeningAfterProcess();
     }
 
     private void search_bank(String key, AIResponse aiResponse) {
@@ -465,12 +467,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
                 sendMessage("Vui lòng chọn nơi bạn muốn đến", false);
                 final ArrayList<Poi> poiArrayList = new ArrayList<>();
-                dataResponse.getAsJsonArray().forEach(new Consumer<JsonElement>() {
-                    @Override
-                    public void accept(JsonElement jsonElement) {
-                        poiArrayList.add(gson.fromJson(jsonElement, Poi.class));
-                    }
-                });
+                for (JsonElement element : dataResponse) {
+                    poiArrayList.add(gson.fromJson(element, Poi.class));
+                }
                 ItemNavigationAdapter adapter = new ItemNavigationAdapter(new ItemNavigationAdapter.ItemCLickListener() {
                     @Override
                     public void onItemClick(Poi poi) {
@@ -507,14 +506,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
 
-    public void openMapTo(String action, AIResponse aiResponse) {
-        try {
-            JsonObject dataResponse = aiResponse.getResult().getFulfillment().getData().get("pois").getAsJsonObject();
-//            gson.fromJson(dataResponse,)
-        } catch (Exception e) {
-            Log.e(LOG_TAG, e.getMessage(), e);
-        }
-    }
 
     public void sendMessage(String text, boolean isUser) {
         viewModel.getLiveDataProcessText().postValue(new Message(text, isUser, Calendar.getInstance().getTimeInMillis()));
@@ -581,9 +572,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.delete) {
             deleteMessage();
-            if (getResources().getBoolean(R.bool.isTablet)) {
-                mRecyclerViewDefaultMainItem.setVisibility(View.VISIBLE);
-            }
             return true;
         }
         return super.onOptionsItemSelected(item);
