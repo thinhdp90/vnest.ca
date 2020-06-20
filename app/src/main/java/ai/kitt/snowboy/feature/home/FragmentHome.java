@@ -43,7 +43,6 @@ public class FragmentHome extends Fragment {
             "See more..."};
 
     private Button btnListener;
-    private RecyclerView mRecyclerView;
     private AdapterHomeItemDefault adapter;
     private View backIcon;
     private TextView btnBack;
@@ -70,7 +69,6 @@ public class FragmentHome extends Fragment {
 
     private void initView(View view) {
         btnListener = view.findViewById(R.id.btnVoice);
-        mRecyclerView = view.findViewById(R.id.recyclerview_def_item);
         btnBack = view.findViewById(R.id.btn_back);
         backIcon = view.findViewById(R.id.icon_back);
         assistantText = view.findViewById(R.id.text_assistant);
@@ -121,7 +119,7 @@ public class FragmentHome extends Fragment {
     public void startResultFragment() {
         Objects.requireNonNull(getActivity()).getSupportFragmentManager()
                 .beginTransaction()
-                .add(R.id.fragment_container, new FragmentResult())
+                .add(R.id.fragment_container, new FragmentResult(), FragmentResult.class.getName())
                 .addToBackStack(MainActivity.class.getName())
                 .commit();
     }
@@ -156,11 +154,9 @@ public class FragmentHome extends Fragment {
         if (shouldShow) {
             backIcon.setVisibility(View.VISIBLE);
             btnBack.setVisibility(View.VISIBLE);
-            mRecyclerView.setVisibility(View.GONE);
         } else {
             backIcon.setVisibility(View.GONE);
             btnBack.setVisibility(View.GONE);
-            mRecyclerView.setVisibility(View.VISIBLE);
         }
     }
 

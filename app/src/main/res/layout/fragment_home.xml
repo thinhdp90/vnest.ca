@@ -36,12 +36,4 @@
         app:layout_constraintBottom_toBottomOf="@+id/btn_back"
         app:layout_constraintTop_toTopOf="@+id/btn_back" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerview_def_item"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnVoice" />
 </androidx.constraintlayout.widget.ConstraintLayout>

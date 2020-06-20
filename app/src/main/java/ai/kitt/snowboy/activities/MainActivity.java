@@ -10,6 +10,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -331,7 +332,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
             @Override
             public void onSlide(@NonNull View view, float v) {
-                Log.e("Onslide", v + "");
+//                Log.e("Onslide", v + "");
             }
         });
         mRecyclerViewDefaultMainItem = bottomSheetLayout.findViewById(R.id.mRecyclerView);
@@ -340,6 +341,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             processing_text(text, true);
             startResultFragment();
         });
+
         adapter.setItemClickListener((position, name) -> {
             sendMessage(name, true);
             contexts = null;
@@ -1020,6 +1022,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     @Override
     public void onActionTurnOn() {
         stopOfflineRecording();
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentResult.class.getName());
+        if (fragment == null) {
+            startResultFragment();
+        }
         viewModel.getLiveDataStartRecord().postValue(true);
     }
 

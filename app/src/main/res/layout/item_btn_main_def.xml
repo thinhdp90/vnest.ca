@@ -18,6 +18,7 @@
         android:textSize="17sp"
         android:singleLine="true"
         android:textColor="#ffffff"
+        android:foreground="?android:attr/selectableItemBackground"
         android:autoSizeMinTextSize="13sp"
         android:autoSizeMaxTextSize="17sp"
         android:gravity="start|center_vertical"
