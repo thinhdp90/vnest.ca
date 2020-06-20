@@ -2,23 +2,43 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
-    <Button
-        android:id="@+id/recognize_file"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/recognize_file"/>
-    <Button
-        android:id="@+id/recognize_mic"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/recognize_microphone"/>
-    <TextView
-        android:id="@+id/result_text"
+    android:orientation="vertical" >
+    <LinearLayout android:id="@+id/bottom"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:gravity="bottom"
-        android:scrollbars="vertical"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true">
+        <Button
+            android:id="@+id/btn_test1"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"
+            android:text="@string/btn1_start"
+            android:layout_weight="1">
+        </Button>
+        <Button
+            android:id="@+id/btn_test2"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"
+            android:text="@string/btn2_start"
+            android:layout_weight="1">
+        </Button>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Log"
+        android:textColor="#FF0000"
+        android:textSize="14.5sp"></TextView>
+
+    <ScrollView
+        android:id="@+id/logView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+        <TextView
+            android:id="@+id/log"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" />
+    </ScrollView>
+
 </LinearLayout>
