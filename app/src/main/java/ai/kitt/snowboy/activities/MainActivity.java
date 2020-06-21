@@ -20,8 +20,10 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.app.SearchManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.location.Location;
@@ -32,12 +34,14 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -60,6 +64,10 @@ import com.kwabenaberko.openweathermaplib.constants.Units;
 import com.kwabenaberko.openweathermaplib.implementation.OpenWeatherMapHelper;
 import com.kwabenaberko.openweathermaplib.implementation.callbacks.CurrentWeatherCallback;
 import com.kwabenaberko.openweathermaplib.models.currentweather.CurrentWeather;
+import com.sac.speech.GoogleVoiceTypingDisabledException;
+import com.sac.speech.Speech;
+import com.sac.speech.SpeechDelegate;
+import com.sac.speech.SpeechRecognitionNotAvailable;
 
 import ai.kitt.snowboy.MsgEnum;
 import ai.kitt.snowboy.OnResultReady;
@@ -98,9 +106,11 @@ import ai.kitt.snowboy.feature.home.AdapterHomeItemDefault;
 import ai.kitt.snowboy.feature.home.FragmentHome;
 import ai.kitt.snowboy.feature.result.FragmentResult;
 import ai.kitt.snowboy.triggerword.TriggerOnline;
+import ai.kitt.snowboy.triggerword.TriggerOnlineInActivity;
 import ai.kitt.snowboy.util.NavigationUtil;
+import ai.kitt.snowboy.util.Utils;
 
-public class MainActivity extends AppCompatActivity implements LocationListener {
+public class MainActivity extends AppCompatActivity implements LocationListener, TriggerOnlineInActivity.Callbacks {
 
     private static final String LOG_TAG = "VNest";
     private static final int UPDATE_AFTER_PROCESS_TEXT = 4;
@@ -755,6 +765,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             speechRecognizerOnline.cancel();
             speechRecognizerOnline.destroy();
         }
+        try {
+            Speech.getInstance().shutdown();
+        } catch (Exception e) {
+
+        }
         //Start service
         Intent intent = new Intent(this, TriggerOnline.class);
         startService(intent);
@@ -977,8 +992,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         } else {
             super.onBackPressed();
         }
-
     }
+
 
     private void onBeepSoundOfRecorder() {
         AudioManager amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -994,4 +1009,43 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             amanager.setStreamMute(AudioManager.STREAM_SYSTEM, false);
         }
     }
+
+    TriggerOnlineInActivity myService;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            Toast.makeText(MainActivity.this, "onServiceConnected called", Toast.LENGTH_SHORT).show();
+            // We've binded to LocalService, cast the IBinder and get LocalService instance
+            TriggerOnlineInActivity.LocalBinder binder = (TriggerOnlineInActivity.LocalBinder) service;
+            myService = binder.getServiceInstance(); //Get instance of your service!
+            myService.registerClient(MainActivity.this); //Activity register in the service as client for callabcks!
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            Toast.makeText(MainActivity.this, "onServiceDisconnected called", Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    public ServiceConnection getServiceConnection() {
+        return mConnection;
+    }
+
+    @Override
+    public void serviceCallback() {
+        Log.d(LOG_TAG, "serviceCallback ");
+//        if (inBackground) {
+//        }
+        onBeepSoundOfRecorder();
+        //Stop service
+        Intent intent = new Intent(this, TriggerOnlineInActivity.class);
+        unbindService(mConnection);
+        stopService(intent);
+
+        viewModel.getLiveDataStartRecord().postValue(true);
+    }
+
 }

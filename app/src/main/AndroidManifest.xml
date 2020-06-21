@@ -39,6 +39,7 @@
         </activity>
 
         <service android:name=".triggerword.TriggerOnline" />
+        <service android:name=".triggerword.TriggerOnlineInActivity" />
 
     </application>
 </manifest>

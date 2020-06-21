@@ -1,7 +1,11 @@
 package ai.kitt.snowboy.feature.home;
 
+import android.content.Context;
+import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +22,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 
 import com.github.zagum.speechrecognitionview.RecognitionProgressView;
+import com.sac.speech.GoogleVoiceTypingDisabledException;
+import com.sac.speech.Speech;
+import com.sac.speech.SpeechDelegate;
+import com.sac.speech.SpeechRecognitionNotAvailable;
 
 import ai.kitt.snowboy.activities.MainActivity;
 import ai.kitt.snowboy.activities.ViewModel;
@@ -25,12 +33,14 @@ import ai.kitt.snowboy.entity.Message;
 import ai.kitt.snowboy.feature.result.FragmentResult;
 
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
 import ai.kitt.snowboy.R;
+import ai.kitt.snowboy.util.Utils;
 
-public class FragmentHome extends Fragment {
+public class FragmentHome extends Fragment implements SpeechDelegate, Speech.stopDueToDelay {
     private static final String LOG_TAG = "VNest";
     private final String[] defItems = {"Open \"Bang Kieu\" Playlist",
             "Open \"VOV giao thong\"",
@@ -169,15 +179,117 @@ public class FragmentHome extends Fragment {
      * Finish Speech Recognition
      */
     public void finishRecognition() {
-        Log.d(LOG_TAG, "stop listener....");
+        Log.d(LOG_TAG, "finishRecognition - stop listener....");
         isStartingRecognitionProgressView = false;
         recognitionProgressView.stop();
         recognitionProgressView.play();
         recognitionProgressView.setVisibility(View.GONE);
         getMainActivity().getSpeechRecognizerOnline().stopListening();
+
+        startTrigerOnline();
     }
 
     public MainActivity getMainActivity() {
         return (MainActivity) getActivity();
+    }
+
+    private String[] listHotWord = new String[]{"xinchaoalex", "okealex", "xinchaoem",
+            "okealice", "xinchaoalice", "alexa", "Alaska"};
+    public static SpeechDelegate delegate;
+
+    @Override
+    public void onSpecifiedCommandPronounced(String event) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                ((AudioManager) Objects.requireNonNull(
+                        getMainActivity().getSystemService(Context.AUDIO_SERVICE))).setStreamMute(AudioManager.STREAM_SYSTEM, true);
+            }
+
+            if (Speech.getInstance().isListening()) {
+                muteBeepSoundOfRecorder();
+                Speech.getInstance().stopListening();
+            } else {
+                Speech.getInstance().stopTextToSpeech();
+                try {
+                    Speech.getInstance().startListening(null, this);
+                } catch (SpeechRecognitionNotAvailable speechRecognitionNotAvailable) {
+                    speechRecognitionNotAvailable.printStackTrace();
+                } catch (GoogleVoiceTypingDisabledException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        muteBeepSoundOfRecorder();
+    }
+
+    @Override
+    public void onStartOfSpeech() {
+
+    }
+
+    @Override
+    public void onSpeechRmsChanged(float value) {
+
+    }
+
+    @Override
+    public void onSpeechPartialResults(List<String> results) {
+        for (String partial : results) {
+            Log.d(LOG_TAG, "onSpeechPartialResults: " + partial);
+        }
+    }
+
+    @Override
+    public void onSpeechResult(String result) {
+        Log.d("LOG_TAG", "onSpeechResult:" + result);
+        if (!TextUtils.isEmpty(result)) {
+            result = Utils.formatString(result).replace(" ", "").toLowerCase().trim();
+            for (String hw : listHotWord) {
+                if (result.contains(hw)) {
+                    viewModel.getLiveDataStartRecord().postValue(true);
+                    Speech.getInstance().shutdown();
+                }
+            }
+        }
+    }
+
+
+    private void muteBeepSoundOfRecorder() {
+        AudioManager amanager = (AudioManager) getMainActivity().getSystemService(Context.AUDIO_SERVICE);
+        if (amanager != null) {
+            amanager.setStreamMute(AudioManager.STREAM_NOTIFICATION, true);
+            amanager.setStreamMute(AudioManager.STREAM_ALARM, true);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                amanager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
+            } else {
+                amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+            }
+            amanager.setStreamMute(AudioManager.STREAM_RING, true);
+            amanager.setStreamMute(AudioManager.STREAM_SYSTEM, true);
+        }
+    }
+
+    private void startTrigerOnline() {
+        Speech.init(getMainActivity());
+        delegate = this;
+        Speech.getInstance().setListener(this);
+
+        if (Speech.getInstance().isListening()) {
+            Speech.getInstance().stopListening();
+//            muteBeepSoundOfRecorder();
+        } else {
+            try {
+                Speech.getInstance().stopTextToSpeech();
+                Speech.getInstance().startListening(null, this);
+            } catch (SpeechRecognitionNotAvailable exc) {
+//                showSpeechNotSupportedDialog();
+
+            } catch (GoogleVoiceTypingDisabledException exc) {
+//                showEnableGoogleVoiceTyping();
+            }
+            muteBeepSoundOfRecorder();
+        }
     }
 }

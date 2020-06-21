@@ -1,17 +1,18 @@
 package ai.kitt.snowboy.triggerword;
 
 
-import android.app.PendingIntent;
+import android.app.Activity;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.os.Binder;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
+import android.os.Handler;
 import android.os.IBinder;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.sac.speech.GoogleVoiceTypingDisabledException;
 import com.sac.speech.Speech;
@@ -25,9 +26,9 @@ import ai.kitt.snowboy.activities.MainActivity;
 import ai.kitt.snowboy.util.Utils;
 
 
-public class TriggerOnline extends Service implements SpeechDelegate, Speech.stopDueToDelay {
+public class TriggerOnlineInActivity extends Service implements SpeechDelegate, Speech.stopDueToDelay {
 
-    private String LOG_TAG = "TriggerOnline";
+    private String LOG_TAG = "TriggerOnlineInActivity";
     public static SpeechDelegate delegate;
 
     private String[] listHotWord = new String[]{"xinchaoalex", "okealex", "xinchaoem",
@@ -71,7 +72,13 @@ public class TriggerOnline extends Service implements SpeechDelegate, Speech.sto
     @Override
     public IBinder onBind(Intent intent) {
         //TODO for communication return IBinder implementation
-        return null;
+        return mBinder;
+    }
+
+    public class LocalBinder extends Binder {
+        public TriggerOnlineInActivity getServiceInstance() {
+            return TriggerOnlineInActivity.this;
+        }
     }
 
     @Override
@@ -90,22 +97,14 @@ public class TriggerOnline extends Service implements SpeechDelegate, Speech.sto
         }
     }
 
-    private void lauchingApp() {
-        Log.d(LOG_TAG, "====================== wake up ============================");
-        Speech.getInstance().shutdown();
-        Intent dialogIntent = new Intent(this, MainActivity.class);
-        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(dialogIntent);
-    }
-
     @Override
     public void onSpeechResult(String result) {
-        Log.d("LOG_TAG", "onSpeechResult:" + result);
+        Log.d(LOG_TAG, "onSpeechResult:" + result);
         if (!TextUtils.isEmpty(result)) {
             result = Utils.formatString(result).replace(" ", "").toLowerCase().trim();
             for (String hw : listHotWord) {
                 if (result.contains(hw)) {
-                    lauchingApp();
+                    handler.postDelayed(serviceRunnable, 0);
                 }
             }
         }
@@ -160,13 +159,28 @@ public class TriggerOnline extends Service implements SpeechDelegate, Speech.sto
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        //Restarting the service if it is removed.
-//        PendingIntent service =
-//                PendingIntent.getService(getApplicationContext(), new Random().nextInt(),
-//                        new Intent(getApplicationContext(), TriggerOnline.class), PendingIntent.FLAG_ONE_SHOT);
-//
-//        Intent dialogIntent = new Intent(this, MainActivity.class);
-//        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//        startActivity(dialogIntent);
+    }
+
+    //callbacks interface for communication with service clients!
+    public interface Callbacks {
+        public void serviceCallback();
+    }
+
+    Callbacks activity;
+    private final IBinder mBinder = new LocalBinder();
+    Handler handler = new Handler();
+    Runnable serviceRunnable = new Runnable() {
+        @Override
+        public void run() {
+            Speech.getInstance().shutdown();
+            activity.serviceCallback(); //Update Activity (client) by the implementd callback
+            handler.postDelayed(this, 0);
+            handler.removeCallbacks(this);
+        }
+    };
+
+    public void registerClient(Activity activity) {
+        this.activity = (Callbacks) activity;
     }
 }
+

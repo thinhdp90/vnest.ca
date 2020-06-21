@@ -1,7 +1,11 @@
 package ai.kitt.snowboy.feature.result;
 
+import android.content.Context;
+import android.content.Intent;
+import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,15 +23,23 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.zagum.speechrecognitionview.RecognitionProgressView;
+import com.sac.speech.GoogleVoiceTypingDisabledException;
+import com.sac.speech.Speech;
+import com.sac.speech.SpeechDelegate;
+import com.sac.speech.SpeechRecognitionNotAvailable;
 
 
 import ai.kitt.snowboy.activities.MainActivity;
 import ai.kitt.snowboy.activities.ViewModel;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import ai.kitt.snowboy.R;
+import ai.kitt.snowboy.triggerword.TriggerOnline;
+import ai.kitt.snowboy.triggerword.TriggerOnlineInActivity;
+import ai.kitt.snowboy.util.Utils;
 
 
 public class FragmentResult extends Fragment {
@@ -39,11 +51,14 @@ public class FragmentResult extends Fragment {
     private Button btnVoice;
     private Boolean isStartingRecognitionProgressView = false;
     private RecognitionProgressView recognitionProgressView;
+    private Intent intent;
 
     @Override
+
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         viewModel = new ViewModelProvider(Objects.requireNonNull(getActivity())).get(ViewModel.class);
+        intent = new Intent(getActivity(), TriggerOnlineInActivity.class);
     }
 
     @Nullable
@@ -61,7 +76,7 @@ public class FragmentResult extends Fragment {
         btnVoice = view.findViewById(R.id.btnVoice);
         recognitionProgressView = view.findViewById(R.id.recognition_view);
         recognitionProgressView.setOnClickListener(v -> {
-            finishRecognition();
+            finishRecognitionAndListen();
         });
         initRecognitionProgressView();
     }
@@ -73,7 +88,7 @@ public class FragmentResult extends Fragment {
         mListResult.setLayoutManager(new LinearLayoutManager(getContext()));
         btnVoice.setOnClickListener(view1 -> {
             if (isStartingRecognitionProgressView) {
-                finishRecognition();
+                finishRecognitionAndListen();
             } else {
                 startRecognition();
             }
@@ -113,7 +128,7 @@ public class FragmentResult extends Fragment {
             if (aBoolean) {
                 startRecognition();
             } else {
-                finishRecognition();
+                finishRecognitionAndListen();
             }
             viewModel.getLiveDataStartRecord().postValue(null);
         });
@@ -121,7 +136,7 @@ public class FragmentResult extends Fragment {
 
     private void setUpRecognitionsUi() {
         recognitionProgressView.setOnClickListener(view1 -> {
-            finishRecognition();
+            finishRecognitionAndListen();
         });
         recognitionProgressView.setSpeechRecognizer(getMainActivity().getSpeechRecognizerManager().getSpeechRecognizer());
         recognitionProgressView.setRecognitionListener(getMainActivity().getSpeechRecognizerManager().getSpeechListener());
@@ -155,6 +170,12 @@ public class FragmentResult extends Fragment {
         recognitionProgressView.play();
         getMainActivity().getSpeechRecognizerManager().startListening();
         recognitionProgressView.setVisibility(View.VISIBLE);
+        try {
+            getActivity().unbindService(getMainActivity().getServiceConnection());
+            getActivity().stopService(intent);
+        } catch (Exception e) {
+
+        }
     }
 
     /**
@@ -168,7 +189,25 @@ public class FragmentResult extends Fragment {
         recognitionProgressView.stop();
         recognitionProgressView.setVisibility(View.INVISIBLE);
         getMainActivity().getSpeechRecognizerManager().stopListening();
+    }
 
+    public void finishRecognitionAndListen() {
+        Log.d(LOG_TAG, "stop listener and listen trigger....");
+        btnVoice.setVisibility(View.VISIBLE);
+        setMarginListResult(37);
+        isStartingRecognitionProgressView = false;
+        recognitionProgressView.stop();
+        recognitionProgressView.setVisibility(View.INVISIBLE);
+        getMainActivity().getSpeechRecognizerManager().destroy();
+
+        try {
+            Speech.getInstance().shutdown();
+        } catch (Exception e) {
+
+        }
+
+        getActivity().startService(intent);
+        getActivity().bindService(intent, getMainActivity().getServiceConnection(), Context.BIND_AUTO_CREATE);
     }
 
     private void setMarginListResult(int topMargin) {
