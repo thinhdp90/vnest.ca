@@ -13,7 +13,6 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
 
     <application
         android:allowBackup="true"
@@ -39,12 +38,7 @@
 
         </activity>
 
-        <service
-            android:name=".triggerword.Trigger"
-            android:enabled="true" />
-        <receiver
-            android:name=".triggerword.TriggerBroadCast"
-            android:enabled="true"
-            android:exported="true" />
+        <service android:name=".triggerword.TriggerOnline" />
+
     </application>
 </manifest>

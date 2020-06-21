@@ -77,9 +77,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation 'com.github.zagum:SpeechRecognitionView:1.2.2'
-//    implementation project(path: ':pocketsphinx-android-5prealpha-release')
     implementation 'com.github.timigod:android-chat-ui:v0.1.4'
-//    implementation 'edu.cmu.pocketsphinx.android:pocketsphinx-android:5prealpha@aar'
     implementation 'com.github.KwabenBerko:OpenWeatherMap-Android-Library:2.0.1'
     implementation 'ai.api:sdk:2.0.7'
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0"
@@ -104,4 +102,8 @@ dependencies {
     implementation "com.squareup.okhttp3:logging-interceptor:$logginInterceptor"
     implementation "com.squareup.retrofit2:converter-gson:$retrofitVersion"
     implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
+
+    // trigger online
+    compile 'com.github.sachinvarma:Speech-Recognizer:0.0.1'
+    compile 'com.tbruyelle.rxpermissions:rxpermissions:0.7.0@aar'
 }

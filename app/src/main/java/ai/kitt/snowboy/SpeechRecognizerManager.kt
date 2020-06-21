@@ -15,7 +15,8 @@ class SpeechRecognizerManager(
     private var speechIntent: Intent
     private var timeOut = 3000
     private var isListening = false
-//    private var mAudioManager: AudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
+    //    private var mAudioManager: AudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var streamVolume: Int? = null
     val speechListener = SpeechRecognitionListener(
             onResultReady) {
@@ -36,8 +37,8 @@ class SpeechRecognizerManager(
                 RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,
                 timeOut
         )
-        speechIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,4000);
-        speechIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,true);
+        speechIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 5000);
+        speechIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
 
         speechRecognizer.setRecognitionListener(speechListener)
 

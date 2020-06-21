@@ -149,7 +149,6 @@ public class FragmentResult extends Fragment {
 
     public void startRecognition() {
         Log.d(LOG_TAG, "start listener....");
-        getMainActivity().stopOfflineRecording();
         isStartingRecognitionProgressView = true;
         btnVoice.setVisibility(View.GONE);
         setMarginListResult(120);
@@ -169,7 +168,6 @@ public class FragmentResult extends Fragment {
         recognitionProgressView.stop();
         recognitionProgressView.setVisibility(View.INVISIBLE);
         getMainActivity().getSpeechRecognizerManager().stopListening();
-        getMainActivity().startOfflineRecording();
 
     }
 

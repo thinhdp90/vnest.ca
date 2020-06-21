@@ -10,7 +10,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -23,18 +22,19 @@ import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
@@ -61,7 +61,6 @@ import com.kwabenaberko.openweathermaplib.implementation.OpenWeatherMapHelper;
 import com.kwabenaberko.openweathermaplib.implementation.callbacks.CurrentWeatherCallback;
 import com.kwabenaberko.openweathermaplib.models.currentweather.CurrentWeather;
 
-import ai.kitt.snowboy.AppResCopy;
 import ai.kitt.snowboy.MsgEnum;
 import ai.kitt.snowboy.OnResultReady;
 import ai.kitt.snowboy.R;
@@ -71,7 +70,6 @@ import ai.kitt.snowboy.SpeechRecognizerManager;
 import org.jetbrains.annotations.NotNull;
 
 
-import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -91,9 +89,6 @@ import ai.kitt.snowboy.adapters.DefaultAssistantAdapter;
 import ai.kitt.snowboy.adapters.ItemNavigationAdapter;
 import ai.kitt.snowboy.api.model.CarInfo;
 import ai.kitt.snowboy.api.reepository.CarRepo;
-import ai.kitt.snowboy.audio.AudioDataSaver;
-import ai.kitt.snowboy.audio.PlaybackThread;
-import ai.kitt.snowboy.audio.RecordingThread;
 import ai.kitt.snowboy.entity.Audio;
 import ai.kitt.snowboy.entity.Message;
 import ai.kitt.snowboy.entity.MyAIContext;
@@ -102,10 +97,10 @@ import ai.kitt.snowboy.entity.Youtube;
 import ai.kitt.snowboy.feature.home.AdapterHomeItemDefault;
 import ai.kitt.snowboy.feature.home.FragmentHome;
 import ai.kitt.snowboy.feature.result.FragmentResult;
-import ai.kitt.snowboy.triggerword.TriggerBroadCast;
+import ai.kitt.snowboy.triggerword.TriggerOnline;
 import ai.kitt.snowboy.util.NavigationUtil;
 
-public class MainActivity extends AppCompatActivity implements LocationListener, TriggerBroadCast.OnHandleTrigger {
+public class MainActivity extends AppCompatActivity implements LocationListener {
 
     private static final String LOG_TAG = "VNest";
     private static final int UPDATE_AFTER_PROCESS_TEXT = 4;
@@ -131,6 +126,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     public TextToSpeech textToSpeech;
 
     public SpeechRecognizer speechRecognizerOnline;
+    public Intent mSpeechRecognizerIntent;
 
     private AIService aiService;
     public static boolean isExcecuteText = false;
@@ -170,9 +166,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         return speechRecognizerOnline;
     }
 
-    private RecordingThread recordingThread;
-    private PlaybackThread playbackThread;
-    private TriggerBroadCast triggerBroadCast;
+//    private RecordingThread recordingThread;
+//    private PlaybackThread playbackThread;
+//    private TriggerBroadCast triggerBroadCast;
 
 
     @Override
@@ -195,16 +191,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     private void initIfPermissionGranted() {
         init();
         initAction();
-        initAlexaDetect();
-        startOfflineRecording();
 
+        mSpeechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,
+                Locale.getDefault());
+        mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 20000);
+        mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 20000);
     }
 
-    private void initAlexaDetect() {
-        AppResCopy.copyResFromAssetsToSD(this);
-        recordingThread = new RecordingThread(handlerHotWordDetect, new AudioDataSaver());
-        playbackThread = new PlaybackThread();
-    }
 
     private void init() {
         initView();
@@ -723,18 +719,24 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         return super.onOptionsItemSelected(item);
     }
 
+    private static boolean inBackground = false;
+
+    @Override
+    protected void onUserLeaveHint() {
+        inBackground = true;
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
-        isActivityOnPause = false;
-        Log.e("Onresume", "Onresume");
-        if (triggerBroadCast == null) {
-            triggerBroadCast = new TriggerBroadCast(this);
-            registerReceiver(triggerBroadCast, new IntentFilter(TriggerBroadCast.ACTION_TURN_MIC_ON));
-            registerReceiver(triggerBroadCast, new IntentFilter(TriggerBroadCast.ACTION_START_APP));
-            registerReceiver(triggerBroadCast, new IntentFilter(TriggerBroadCast.ACTION_TURN_MIC_OFF));
-        }
-
+        Log.d(LOG_TAG, "stop TRIGGER");
+//        if (inBackground) {
+        viewModel.getLiveDataStartRecord().postValue(true);
+//        }
+        onBeepSoundOfRecorder();
+        //Stop service
+        Intent intent = new Intent(this, TriggerOnline.class);
+        stopService(intent);
     }
 
     /**
@@ -745,22 +747,35 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     @Override
     protected void onPause() {
         super.onPause();
-        Log.e("isActivityOnPause", "OnPause " + isActivityOnPause);
-        speechRecognizerManager.stopListening();
-        isActivityOnPause = true;
-        restartOfflineRecording();
+
+        Log.d(LOG_TAG, "start TRIGGER");
+        finishRecognition();
+        if (speechRecognizerOnline != null) {
+            speechRecognizerOnline.stopListening();
+            speechRecognizerOnline.cancel();
+            speechRecognizerOnline.destroy();
+        }
+        //Start service
+        Intent intent = new Intent(this, TriggerOnline.class);
+        startService(intent);
+
+        onBeepSoundOfRecorder();
+
     }
 
 
     @Override
     protected void onDestroy() {
-        recordingThread.stopRecording();
-
         super.onDestroy();
+
         if (speechRecognizerOnline != null) {
             speechRecognizerOnline.destroy();
         }
-        unregisterReceiver(triggerBroadCast);
+
+        //Start service
+        Intent intent = new Intent(this, TriggerOnline.class);
+        stopService(intent);
+
     }
 
     private void deleteMessage() {
@@ -954,93 +969,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
     }
 
-    @SuppressLint("HandlerLeak")
-    public Handler handlerHotWordDetect = new Handler() {
-        @SuppressLint("HandlerLeak")
-        @Override
-        public void handleMessage(android.os.Message msg) {
-            MsgEnum message = MsgEnum.getMsgEnum(msg.what);
-            switch (message) {
-                case MSG_ACTIVE:
-                    updateLog(" ----> Detected " + " times" + "Offline");
-                    updateIfActive();
-                    break;
-                case MSG_INFO:
-                    updateLog(" ----> " + message);
-                    break;
-                case MSG_VAD_SPEECH:
-                    updateLog(" ----> normal voice" + "Offline");
-                    break;
-                case MSG_VAD_NOSPEECH:
-                    updateLog(" ----> no speech" + "Offline");
-                    break;
-                case MSG_ERROR:
-                    restartOfflineRecording();
-                    updateLog(" ----> " + msg.toString() + "Offline");
-                    break;
-                default:
-                    super.handleMessage(msg);
-                    break;
-            }
-        }
-    };
-
-    public void updateIfActive() {
-        stopOfflineRecording();
-        Intent i = new Intent();
-        if (isActivityOnPause) {
-            i.setAction(TriggerBroadCast.ACTION_START_APP);
-        } else {
-            i.setAction(TriggerBroadCast.ACTION_TURN_MIC_ON);
-        }
-        sendBroadcast(i);
-    }
-
-    public void updateLog(final String text) {
-        Log.e("Speech offline log", text);
-    }
-
-    public void restartOfflineRecording() {
-        try {
-            recordingThread.startRecording();
-        } catch (Exception e) {
-            e.printStackTrace();
-            initAlexaDetect();
-        }
-    }
-
-    public void startOfflineRecording() {
-        recordingThread.startRecording();
-        updateLog(" ----> recording started ..." + "Offline");
-    }
-
-    public void stopOfflineRecording() {
-        recordingThread.stopRecording();
-        updateLog(" ----> recording stopped " + "Offline");
-    }
-
-    @Override
-    public void onActionTurnOn() {
-        stopOfflineRecording();
-        Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentResult.class.getName());
-        if (fragment == null) {
-            startResultFragment();
-        }
-        viewModel.getLiveDataStartRecord().postValue(true);
-    }
-
-    @Override
-    public void onActionTurnOff() {
-
-    }
-
-    @Override
-    public void onActionStartApp() {
-        Log.e("Action", "start voice after start app");
-        stopOfflineRecording();
-//        startResultFragment();
-        viewModel.getLiveDataStartRecord().postValue(true);
-    }
 
     @Override
     public void onBackPressed() {
@@ -1050,5 +978,20 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             super.onBackPressed();
         }
 
+    }
+
+    private void onBeepSoundOfRecorder() {
+        AudioManager amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (amanager != null) {
+            amanager.setStreamMute(AudioManager.STREAM_NOTIFICATION, false);
+            amanager.setStreamMute(AudioManager.STREAM_ALARM, false);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                amanager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 100);
+            } else {
+                amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            }
+            amanager.setStreamMute(AudioManager.STREAM_RING, false);
+            amanager.setStreamMute(AudioManager.STREAM_SYSTEM, false);
+        }
     }
 }
