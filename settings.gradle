@@ -1,0 +1,3 @@
+include ':kaldi-android-5.2'
+include ':aars', ':app'
+

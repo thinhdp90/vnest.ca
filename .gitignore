@@ -1,0 +1,14 @@
+.gradle
+.idea
+/local.properties
+/build
+/app/build
+/models/build
+.DS_Store
+*.md5
+*.lst
+*.iml
+gradlew
+gradlew.bat
+gradle/wrapper/gradle-wrapper.jar
+gradle/wrapper/gradle-wrapper.properties
