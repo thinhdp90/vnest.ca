@@ -97,11 +97,6 @@ public class Trigger extends Service implements RecognitionListener {
         startActivity(dialogIntent);
     }
 
-
-    //
-    // RecognitionListener Implementation
-    //
-
     @Override
     public void onBeginningOfSpeech() {
         Log.d(LOG_TAG, "Beginning Of Speech");

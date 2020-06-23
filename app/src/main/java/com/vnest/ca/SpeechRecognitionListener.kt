@@ -1,44 +1,43 @@
 package com.vnest.ca
 
+import android.content.Context
 import android.media.AudioManager
+import android.os.Build
 import android.os.Bundle
-import android.speech.RecognitionListener
 import android.speech.SpeechRecognizer
 import android.util.Log
+import androidx.core.content.ContextCompat.getSystemService
 import com.github.zagum.speechrecognitionview.adapters.RecognitionListenerAdapter
 
 
 class SpeechRecognitionListener(
         private val mListener: OnResultReady,
-        private var audioManager: AudioManager,
-        var onErrorNoMatch: () -> Unit
+        var onErrorNoMatch: () -> Unit,
+        val onMuteVolume: (shouldMute: Boolean) -> Unit
 ) : RecognitionListenerAdapter() {
-    private val volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
 
-    //    override fun onReadyForSpeech(params: Bundle?) {
-//        Log.e("Onready for speech", "Onready for speech")
-//    }
-//
+    override fun onReadyForSpeech(params: Bundle?) {
+    }
+
+
+    override fun onBufferReceived(buffer: ByteArray?) {
+    }
+
+    override fun onEvent(eventType: Int, params: Bundle?) {
+    }
+
     override fun onRmsChanged(rmsdB: Float) {
         Log.e("onRmsChanged", rmsdB.toString())
     }
-//
-//    override fun onBufferReceived(buffer: ByteArray?) {
-//        Log.e("onBufferReceived", "onBufferReceived")
-//    }
-//
-//    override fun onEvent(eventType: Int, params: Bundle?) {
-//        Log.e("onEvent", "onEvent")
-//    }
 
     override fun onBeginningOfSpeech() {
         Log.e("onBeginningOfSpeech", "onBeginningOfSpeech")
-        resetVolume()
+        onMuteVolume(false)
     }
 
     override fun onEndOfSpeech() {
         Log.e("onEndOfSpeech", "onEndOfSpeech")
-        resetVolume()
+        onMuteVolume(false)
     }
 
     @Synchronized
@@ -47,7 +46,7 @@ class SpeechRecognitionListener(
         when (error) {
 
             SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
+                onMuteVolume(true)
                 onErrorNoMatch()
             }
             SpeechRecognizer.ERROR_NETWORK -> {
@@ -61,23 +60,18 @@ class SpeechRecognitionListener(
     override fun onPartialResults(partialResults: Bundle?) {
         Log.e("onPartialResults", "onPartialResults")
         if (partialResults != null) {
-            val texts =
-                    partialResults.getStringArrayList("android.speech.extra.UNSTABLE_TEXT")
+            val texts = partialResults.getStringArrayList("android.speech.extra.UNSTABLE_TEXT")
             texts?.let { mListener.onStreamResult(it) }
         }
     }
 
     override fun onResults(results: Bundle?) {
-        resetVolume()
         if (results != null) {
             val text = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
             if (text != null) {
                 mListener.onResults(text)
             }
         }
-    }
-    private fun resetVolume() {
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
     }
 
 }

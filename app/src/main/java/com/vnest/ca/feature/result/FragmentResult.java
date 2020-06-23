@@ -92,10 +92,7 @@ public class FragmentResult extends Fragment {
             mListResult.scrollToPosition(adapter.getItemCount() - 1);
             finishRecognition();
         });
-        viewModel.getLiveDataTextToSpeech().observe(getViewLifecycleOwner(), text -> {
-            Log.e("Text to speech", text);
-            ((MainActivity) Objects.requireNonNull(getActivity())).textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null);
-        });
+
         viewModel.getLiveListPoi().observe(getViewLifecycleOwner(), pois -> {
             adapter.addItem(new ItemListResult(pois));
             mListResult.scrollToPosition(adapter.getItemCount() - 1);

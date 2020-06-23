@@ -21,12 +21,16 @@ public class NavigationUtil {
     }
 
     public static void navigationToPoint(Poi poi, Context context) {
-        Uri gmmIntentUri = Uri.parse("google.navigation:ll=" + poi.getGps().getLatitude() + "," + poi.getGps().getLongitude());
+        String location = poi.getGps().getLatitude() + "," + poi.getGps().getLongitude();
+        navigationToLocation(location, context);
+    }
+
+    public static void navigationToLocation(String location, Context context) {
+        Uri gmmIntentUri = Uri.parse("google.navigation:ll=" + location);
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
         mapIntent.setPackage("com.navitel");
         if (mapIntent.resolveActivity(context.getPackageManager()) == null) {
-            // Navitel is not installed, open the page in the market
-            gmmIntentUri = Uri.parse("google.navigation:q=" + poi.getGps().getLatitude() + "," + poi.getGps().getLongitude());
+            gmmIntentUri = Uri.parse("google.navigation:q=" + location);
             mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
             mapIntent.setPackage("com.google.android.apps.maps");
         }
@@ -34,12 +38,14 @@ public class NavigationUtil {
     }
 
     public static void displayPointToMap(Poi poi, Context context) {
-//        geo:0,0?q=-33.8666,151.1957(Google+Sydney)
-        Uri intentUri = Uri.parse("geo:0,0?q=" + poi.getGps().getLatitude() + "," + poi.getGps().getLongitude() + "(" + poi.getTitle() + ")");
+        displayLocationToMap(poi.getGps().getLatitude() + "," + poi.getGps().getLongitude() + "(" + poi.getTitle() + ")", context);
+    }
+
+    public static void displayLocationToMap(String location, Context context) {
+        Uri intentUri = Uri.parse("geo:0,0?q=" + location);
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, intentUri);
         mapIntent.setPackage("com.navitel");
         if (mapIntent.resolveActivity(context.getPackageManager()) == null) {
-            // Navitel is not installed, open the page in the market
             mapIntent = new Intent(Intent.ACTION_VIEW, intentUri);
             mapIntent.setPackage("com.google.android.apps.maps");
         }

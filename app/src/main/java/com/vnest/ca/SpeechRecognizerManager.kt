@@ -3,6 +3,7 @@ package com.vnest.ca
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
+import android.os.Build
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import java.util.*
@@ -10,24 +11,20 @@ import java.util.*
 
 class SpeechRecognizerManager(
         val context: Context,
-        var onResultReady: OnResultReady,
+        private var onResultReady: OnResultReady,
         var speechRecognizer: SpeechRecognizer
 ) {
-    private var speechIntent: Intent
+    private var speechIntent: Intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
     private var timeOut = 20000
     private var isListening = false
-    private var mAudioManager: AudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-    private var streamVolume: Int? = null
     val speechListener = SpeechRecognitionListener(
-            onResultReady,
-            mAudioManager
-    ) {
+            onResultReady, {
         restartListening()
-    }
+    }, {
+        muteVolume(it)
+    })
 
     init {
-        streamVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-        speechIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
         speechIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName);
         speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
         speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, Locale.getDefault());
@@ -45,7 +42,7 @@ class SpeechRecognizerManager(
     }
 
     fun restartListening() {
-        mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
+        muteVolume(true)
         speechRecognizer.stopListening()
         speechRecognizer.cancel()
         speechRecognizer.startListening(speechIntent)
@@ -69,6 +66,7 @@ class SpeechRecognizerManager(
     }
 
     fun recreateVoicRecog() {
+        speechRecognizer.destroy()
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
         speechRecognizer.setRecognitionListener(speechListener)
     }
@@ -89,6 +87,21 @@ class SpeechRecognizerManager(
             it.stopListening();
             it.cancel();
             it.destroy();
+        }
+    }
+
+    private fun muteVolume(shouldMute: Boolean) {
+        val alarmManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager?
+        if (alarmManager != null) {
+            alarmManager.setStreamMute(AudioManager.STREAM_NOTIFICATION, shouldMute)
+            alarmManager.setStreamMute(AudioManager.STREAM_ALARM, shouldMute)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0)
+            } else {
+                alarmManager.setStreamMute(AudioManager.STREAM_MUSIC, shouldMute)
+            }
+            alarmManager.setStreamMute(AudioManager.STREAM_RING, shouldMute)
+            alarmManager.setStreamMute(AudioManager.STREAM_SYSTEM, shouldMute)
         }
     }
 
