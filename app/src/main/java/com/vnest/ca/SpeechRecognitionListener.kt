@@ -27,17 +27,17 @@ class SpeechRecognitionListener(
     }
 
     override fun onRmsChanged(rmsdB: Float) {
-        Log.e("onRmsChanged", rmsdB.toString())
+//        Log.e("onRmsChanged", rmsdB.toString())
     }
 
     override fun onBeginningOfSpeech() {
         Log.e("onBeginningOfSpeech", "onBeginningOfSpeech")
-        onMuteVolume(false)
+        onMuteVolume(true)
     }
 
     override fun onEndOfSpeech() {
         Log.e("onEndOfSpeech", "onEndOfSpeech")
-        onMuteVolume(false)
+        onMuteVolume(true)
     }
 
     @Synchronized
@@ -46,7 +46,7 @@ class SpeechRecognitionListener(
         when (error) {
 
             SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
-                onMuteVolume(true)
+                onMuteVolume(false)
                 onErrorNoMatch()
             }
             SpeechRecognizer.ERROR_NETWORK -> {
@@ -58,6 +58,7 @@ class SpeechRecognitionListener(
     }
 
     override fun onPartialResults(partialResults: Bundle?) {
+        onMuteVolume(true)
         Log.e("onPartialResults", "onPartialResults")
         if (partialResults != null) {
             val texts = partialResults.getStringArrayList("android.speech.extra.UNSTABLE_TEXT")
@@ -66,6 +67,8 @@ class SpeechRecognitionListener(
     }
 
     override fun onResults(results: Bundle?) {
+        onMuteVolume(true)
+
         if (results != null) {
             val text = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
             if (text != null) {

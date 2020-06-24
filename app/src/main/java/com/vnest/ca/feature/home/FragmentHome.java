@@ -22,7 +22,6 @@ import com.vnest.ca.R;
 import com.vnest.ca.activities.MainActivity;
 import com.vnest.ca.activities.ViewModel;
 import com.vnest.ca.entity.Message;
-import com.vnest.ca.feature.result.FragmentResult;
 
 import java.util.Calendar;
 import java.util.Locale;

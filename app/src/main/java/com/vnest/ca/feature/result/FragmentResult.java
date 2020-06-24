@@ -56,9 +56,6 @@ public class FragmentResult extends Fragment {
         mListResult = view.findViewById(R.id.mRecyclerView);
         btnVoice = view.findViewById(R.id.btnVoice);
         recognitionProgressView = view.findViewById(R.id.recognition_view);
-        recognitionProgressView.setOnClickListener(v -> {
-            finishRecognition();
-        });
         initRecognitionProgressView();
     }
 
@@ -117,6 +114,7 @@ public class FragmentResult extends Fragment {
     }
 
     private void initRecognitionProgressView() {
+
         int[] colors = {
                 ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color1),
                 ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color2),

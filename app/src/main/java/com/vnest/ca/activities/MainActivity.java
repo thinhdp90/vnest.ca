@@ -351,10 +351,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         });
         mRecyclerViewDefaultMainItem = bottomSheetLayout.findViewById(R.id.mRecyclerView);
         AdapterHomeItemDefault adapter = new AdapterHomeItemDefault(this, getTextToSpeech(), text -> {
-            processing_text(text, true);
-            startResultFragment();
+
         });
         adapter.setItemClickListener((position, name) -> {
+            startResultFragment();
             viewModel.getLiveDataStartRecord().postValue(false);
             contexts = null;
             sendMessage(name, true);
@@ -372,6 +372,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     public void startResultFragment() {
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentResult.class.getName());
         if (fragment == null) {
+            Log.e(LOG_TAG, "Start result framgnet");
             getSupportFragmentManager()
                     .beginTransaction()
                     .add(R.id.fragment_container, new FragmentResult(), FragmentResult.class.getName())
@@ -388,6 +389,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 if (isExcecuteText) {
                     return;
                 }
+                speechRecognizerManager.muteVolume(false);
                 finishRecognition();
                 speechRecognizerManager.stopListening();
                 String text = results.get(0);
@@ -474,6 +476,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     public void finishRecognition() {
         isStartRecognizer = false;
+        if (speechRecognizerManager != null) {
+            speechRecognizerManager.stopListening();
+        }
     }
 
     public void processing_text(final String text, Boolean resetContext) {
@@ -486,7 +491,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 }
                 aiRequest.setSessionId(currentSessionId);
                 long currentProcessTime = System.currentTimeMillis();
-                if (resetContext || calculateResetContext(processTime, currentProcessTime)) {
+                if (resetContext || calculateResetContext(processTime, currentProcessTime) || resetContext) {
+                    Log.e(LOG_TAG, "============Reset context=============");
                     contexts = null;
                     aiRequest.setResetContexts(true);
                 }
@@ -549,6 +555,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             } else if (text.toLowerCase().contains(KEY_SEARCH)) {
                                 search(text);
                             } else {
+                                sendMessage(NO_DATA_FOUND,false);
                                 speak(NO_DATA_FOUND, false);
                             }
                     }
@@ -570,7 +577,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         String textSpeech = aiRes.getResult().getFulfillment().getSpeech();
         sendMessage(textSpeech, false);
         speak(textSpeech, true);
-        resetProcessTime();
     }
 
     private void searchPlaces(String key, AIResponse aiResponse) {
@@ -579,7 +585,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             if (dataResponse.isJsonNull() || dataResponse.size() < 1) {
                 sendMessage(NO_DATA_FOUND_TRY_AGAIN, false);
                 speak(NO_DATA_FOUND_TRY_AGAIN);
-                resetProcessTime();
+                resetContext();
             } else if (dataResponse.size() >= 1 && getResources().getBoolean(R.bool.isTablet)) {
                 final ArrayList<Poi> poiArrayList = new ArrayList<>();
                 for (JsonElement element : dataResponse) {
@@ -591,7 +597,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         sendMessage(NAVIGATE_TO + poiArrayList.get(0).getTitle() + "...", false);
                         Thread.sleep(1000);
                         NavigationUtil.navigationToPoint(poiArrayList.get(0), MainActivity.this);
-                        resetProcessTime();
+                        resetContext();
                     } catch (Exception e) {
                         speak(CAN_NOT_FIND_PLACE);
                     }
@@ -603,7 +609,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     android.os.Message message = mHandler.obtainMessage(UPDATE_AFTER_PROCESS_TEXT);
                     message.obj = poiArrayList;
                     message.sendToTarget();
-                    resetProcessTime();
+                    resetContext();
                 }
 
 
@@ -611,7 +617,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 Poi poi = gson.fromJson(dataResponse.get(0), Poi.class);
                 sendMessage(NAVIGATE_TO + poi.getTitle() + "...", false);
                 NavigationUtil.navigationToPoint(poi, MainActivity.this);
-                resetProcessTime();
+                resetContext();
             }
         } catch (Exception e) {
             Log.e("Error search places", e.getMessage(), e);
@@ -624,7 +630,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         Log.d(LOG_TAG, "===== textSpeech:" + textSpeech);
         sendMessage(textSpeech, false);
         speak(textSpeech, true);
-        resetProcessTime();
+        resetContext();
     }
 
     private void searchYoutube(AIResponse aiRes, String code) {
@@ -640,7 +646,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             intent.setPackage("com.google.android.youtube");
             startActivity(intent);
             sendMessage(video.getHref(), false);
-            resetProcessTime();
+            resetContext();
         }
     }
 
@@ -660,7 +666,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 intent.setData(Uri.parse(audio.getLink()));
                 intent.setPackage("com.zing.mp3");
                 startActivity(intent);
-                resetProcessTime();
+                resetContext();
             } else {
                 /**
                  * @ListenAgainSongName
@@ -688,7 +694,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             Log.e(LOG_TAG, "Key " + location);
             NavigationUtil.navigationToLocation(location, this);
             sendMessage(FIND_WAY_TO + location, false);
-            resetProcessTime();
+            resetContext();
 
         } else if (text.contains("gần")) {
             String string_start = KEY_SEARCH;
@@ -698,7 +704,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             String location = text.substring(start, end);
             sendMessage("Tìm " + location + "gần nhất", false);
             NavigationUtil.displayLocationToMap(location, this);
-            resetProcessTime();
+            resetContext();
         } else {
             String string_start = KEY_SEARCH;
             int start = text.indexOf(string_start) + string_start.length();
@@ -718,7 +724,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
         intent.putExtra(SearchManager.QUERY, key);
         startActivity(intent);
-        resetProcessTime();
+        resetContext();
     }
 
 
@@ -833,7 +839,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @Override
     protected void onPause() {
         super.onPause();
-
         Log.d(LOG_TAG, "start TRIGGER");
         if (checkPermission()) {
             finishRecognition();
@@ -841,8 +846,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 speechRecognizer.stopListening();
             }
             //Start service
-            Intent intent = new Intent(this, Trigger.class);
-            startService(intent);
+            try {
+                Intent intent = new Intent(this, Trigger.class);
+                startService(intent);
+            } catch (Exception e) {
+                Log.e(LOG_TAG, e.getMessage(), e);
+            }
+
         }
 
     }
@@ -988,14 +998,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     private Boolean calculateResetContext(long previousProcessTime, long currentProcessTime) {
-        if (previousProcessTime == 0) return true;
+        if (previousProcessTime == 0) return false;
+        if (previousProcessTime == -1) return true;
         long distance = currentProcessTime - previousProcessTime;
         return TimeUnit.MILLISECONDS.toMinutes(distance) > 1;
     }
 
-    private void resetProcessTime() {
-        processTime = 0;
+    private void resetContext() {
+        shouldResetContext = true;
     }
 
+    private boolean shouldResetContext = false;
     private long processTime = 0;
 }

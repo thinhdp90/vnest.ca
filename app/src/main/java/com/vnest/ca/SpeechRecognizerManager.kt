@@ -6,6 +6,7 @@ import android.media.AudioManager
 import android.os.Build
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.util.Log
 import java.util.*
 
 
@@ -14,6 +15,7 @@ class SpeechRecognizerManager(
         private var onResultReady: OnResultReady,
         var speechRecognizer: SpeechRecognizer
 ) {
+    val TAG = "Vnest"
     private var speechIntent: Intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
     private var timeOut = 20000
     private var isListening = false
@@ -72,13 +74,12 @@ class SpeechRecognizerManager(
     }
 
     fun stopListening() {
-        if (isListening) {
-            speechRecognizer.let {
-                it.stopListening()
-                it.cancel()
-            }
-            isListening = false
+        Log.e(TAG,"=============Stop listening=============")
+        speechRecognizer.let {
+            it.stopListening()
+            it.cancel()
         }
+        isListening = false
     }
 
     fun destroy() {
@@ -90,13 +91,17 @@ class SpeechRecognizerManager(
         }
     }
 
-    private fun muteVolume(shouldMute: Boolean) {
+    fun muteVolume(shouldMute: Boolean) {
         val alarmManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager?
         if (alarmManager != null) {
             alarmManager.setStreamMute(AudioManager.STREAM_NOTIFICATION, shouldMute)
             alarmManager.setStreamMute(AudioManager.STREAM_ALARM, shouldMute)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0)
+                if(shouldMute) {
+                    alarmManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0)
+                } else{
+                    alarmManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0)
+                }
             } else {
                 alarmManager.setStreamMute(AudioManager.STREAM_MUSIC, shouldMute)
             }
