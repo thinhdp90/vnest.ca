@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Vnest_CA</string>
+    <string name="app_name">Webvision Voice</string>
     <string name="OPEN_WEATHER_MAP_API_KEY">1712b13f1818ed66da04d1a46db51822</string>
     <string name="content_description">Content</string>
     <string name="test">Test</string>
@@ -7,4 +7,6 @@
     <string name="load_more">See more coffee nearby…</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="media_url_mp4">blob:https://vtvgo.vn/22753d4f-d4a9-4b73-ac43-c7c5e73d9ec8</string>
+    <string name="checking_for_update">Checking for update...</string>
 </resources>

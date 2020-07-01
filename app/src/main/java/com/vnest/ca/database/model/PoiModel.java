@@ -5,13 +5,14 @@ import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 import com.vnest.ca.entity.Gps;
+import com.vnest.ca.entity.Poi;
 
 import org.jetbrains.annotations.NotNull;
 
 @Entity
 public class PoiModel {
     @ColumnInfo
-    private int timeMillis;
+    private long timeMillis;
     @ColumnInfo
     private String img;
     @ColumnInfo
@@ -37,11 +38,11 @@ public class PoiModel {
     @ColumnInfo
     private double distance;
 
-    public int getTimeMillis() {
+    public long getTimeMillis() {
         return timeMillis;
     }
 
-    public void setTimeMillis(int timeMillis) {
+    public void setTimeMillis(long timeMillis) {
         this.timeMillis = timeMillis;
     }
 
@@ -131,5 +132,20 @@ public class PoiModel {
 
     public void setDistance(double distance) {
         this.distance = distance;
+    }
+
+    public void from(Poi poi, long time) {
+        this.address = poi.getAddress();
+        this.brand = poi.getBrand();
+        this.category = poi.getCategory();
+        this.distance = poi.getDistance();
+        this.email = poi.getEmail();
+        this.gps = poi.getGps().getLatitude() + "," + poi.getGps().getLongitude();
+        this.hash = poi.getHash();
+        this.img = poi.getImg();
+        this.phone = poi.getPhone();
+        this.title = poi.getTitle();
+        this.url = poi.getUrl();
+        this.timeMillis = time;
     }
 }

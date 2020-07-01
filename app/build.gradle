@@ -29,7 +29,7 @@ android {
 
 dependencies {
     def room_version = "2.2.5"
-    def retrofitVersion = "2.8.1"
+    def retrofitVersion = "2.8.2"
     def logginInterceptor = "4.7.1"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -66,6 +66,15 @@ dependencies {
     implementation "com.squareup.okhttp3:logging-interceptor:$logginInterceptor"
     implementation "com.squareup.retrofit2:converter-gson:$retrofitVersion"
     implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
+
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.10.0'
+    implementation 'com.google.android.exoplayer:exoplayer-dash:2.10.0'
+    implementation 'com.google.android.exoplayer:exoplayer-ui:2.10.0'
+    implementation 'com.google.android.exoplayer:exoplayer-hls:2.10.0'
+    implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.10.0'
+    implementation project(':updatelibrary')
+    implementation project(':opencam')
+
 }
 ant.importBuild 'assets.xml'
 preBuild.dependsOn(list, checksum)

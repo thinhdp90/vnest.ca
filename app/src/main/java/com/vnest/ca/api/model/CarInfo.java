@@ -3,12 +3,14 @@ package com.vnest.ca.api.model;
 import android.os.Build;
 import android.provider.Settings;
 
+import com.vnest.ca.BuildConfig;
+
 public class CarInfo {
     public CarInfo(String deviceId) {
         this.deviceId = deviceId;
     }
 
-    public CarInfo(String deviceId, String model, String id, String brand, String type, String user, String base, String sdk, String incremental, String board, String host, String versionCode, String fingerPrint) {
+    public CarInfo(String deviceId, String model, String id, String brand, String type, String user, String base, String sdk, String incremental, String board, String host, String versionCode, String fingerPrint, String versionName) {
         this.deviceId = deviceId;
         this.model = model;
         this.id = id;
@@ -22,6 +24,7 @@ public class CarInfo {
         this.host = host;
         this.versionCode = versionCode;
         this.fingerPrint = fingerPrint;
+        this.versionName = versionName;
     }
 
     public String deviceId;
@@ -37,6 +40,7 @@ public class CarInfo {
     public String host;
     public String versionCode;
     public String fingerPrint;
+    private String versionName;
 
     public static CarInfo getDefault(String deviceId) {
         return new CarInfo(
@@ -51,8 +55,9 @@ public class CarInfo {
                 Build.VERSION.INCREMENTAL,
                 Build.BOARD,
                 Build.HOST,
-                Build.VERSION_CODES.BASE + "",
-                Build.FINGERPRINT
+                BuildConfig.VERSION_CODE + "",
+                Build.FINGERPRINT,
+                BuildConfig.VERSION_NAME
         );
     }
 

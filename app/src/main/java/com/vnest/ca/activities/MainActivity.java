@@ -23,6 +23,7 @@ import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.location.Location;
@@ -33,6 +34,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -66,8 +68,7 @@ import com.vnest.ca.R;
 import com.vnest.ca.SpeechRecognizerManager;
 import com.vnest.ca.adapters.DefaultAssistantAdapter;
 import com.vnest.ca.adapters.ItemNavigationAdapter;
-import com.vnest.ca.api.model.CarInfo;
-import com.vnest.ca.api.reepository.CarRepo;
+import com.vnest.ca.api.model.CarResponse;
 import com.vnest.ca.entity.Audio;
 import com.vnest.ca.entity.Message;
 import com.vnest.ca.entity.MyAIContext;
@@ -77,7 +78,9 @@ import com.vnest.ca.feature.home.AdapterHomeItemDefault;
 import com.vnest.ca.feature.home.FragmentHome;
 import com.vnest.ca.feature.result.FragmentResult;
 import com.vnest.ca.triggerword.Trigger;
+import com.vnest.ca.util.DialogUtils;
 import com.vnest.ca.util.NavigationUtil;
+import com.vnest.ca.util.PhoneUtils;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -99,6 +102,8 @@ import ai.api.android.AIConfiguration;
 import ai.api.android.AIService;
 import ai.api.model.AIRequest;
 import ai.api.model.AIResponse;
+import kun.ktupdatelibrary.DownLoadBroadCast;
+import kun.ktupdatelibrary.UpdateChecker;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
 
@@ -106,6 +111,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private static final int UPDATE_AFTER_PROCESS_TEXT = 4;
     public static final int RESTART_VOICE_RECOGNITION = 1;
     private static final int REQUEST_PERMISSION_CODE = 101;
+    private static final int PICK_CONTACT_CODE = 102;
+
     private static final String TEXT_TO_SPEECH_RESTART_VOICE_RECORD = "restart_voice";
     private static final String NOT_CHANGE_SESSION_ID = "notchangesessionid";
     private static final String NO_DATA_FOUND = "Hiện không tìm thấy thông tin";
@@ -122,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private static final String KEY_MAINTAIN_SCHEDULE = "Lịch sử sửa chữa";
     private static final String KEY_GASOLINE_HISTORY = "Lịch sử đổ xăng";
     private static final String AI_CONFIG_ACCESS_TOKEN = "73cf2510f55c425eb5f5d8bb20d6d3e7";
+
 
     /**
      * Open un_know place
@@ -162,6 +170,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
      */
     private static final String OPEN_YOU_TUBE = "Youtube";
 
+    /**
+     * Call from contact
+     **/
+    private static final String ACTION_CALL_FROM_CONTACT = "CallFromContact";
+
     private String[] permissions = {Manifest.permission.INTERNET,
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.CALL_PHONE,
@@ -171,7 +184,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             Manifest.permission.VIBRATE,
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.SET_ALARM};
+            Manifest.permission.SET_ALARM,
+            Manifest.permission.READ_CONTACTS};
 
     private View bottomSheetLayout;
     private BottomSheetBehavior bottomSheetBehavior;
@@ -201,10 +215,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private View mCollapseView;
     private Boolean isStartRecognizer;
     private ViewModel viewModel;
-    private CarRepo carRepo = new CarRepo();
     private ConstraintLayout mDrawer;
     private DrawerLayout mDrawerLayout;
     private CoordinatorLayout mainLayout;
+    public DownLoadBroadCast downLoadBroadCast;
+    private ProgressDialog downloadDialog;
+
 
     private SpeechRecognizerManager speechRecognizerManager;
 
@@ -247,11 +263,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     private void init() {
+
         initView();
         deviceId = Settings.Secure.getString(getContentResolver(),
                 Settings.Secure.ANDROID_ID);
-        carRepo.sendCarInfo(CarInfo.getDefault(deviceId));
         // Get phone's location
+        viewModel.sendCarInfo(deviceId);
+        viewModel.getLiveDataUpdateResponse().observe(this, carResponse -> {
+            updateApp(carResponse);
+        });
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -549,13 +569,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         case OPEN_YOU_TUBE:
                             searchYoutube(aiRes, code);
                             break;
+                        case ACTION_CALL_FROM_CONTACT:
+                            callTo(aiRequest, code);
+                            break;
                         default:
                             if (text.toLowerCase().contains(KEY_WEATHER)) {
                                 weather();
                             } else if (text.toLowerCase().contains(KEY_SEARCH)) {
                                 search(text);
                             } else {
-                                sendMessage(NO_DATA_FOUND,false);
+                                sendMessage(NO_DATA_FOUND, false);
                                 speak(NO_DATA_FOUND, false);
                             }
                     }
@@ -573,10 +596,29 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         thread.start();
     }
 
+    private void callTo(AIRequest aiRequest, String code) {
+        PhoneUtils.callToContact(this, "Kun", new PhoneUtils.OnCallListener() {
+            @Override
+            public void onSuccess() {
+                Log.e(LOG_TAG, "Call success");
+
+            }
+
+            @Override
+            public void onError(Exception ex) {
+                if (ex instanceof NullPointerException) {
+                    DialogUtils.getConfirmDialog(MainActivity.this, "No Contact", "There are no contact found!").show();
+                }
+                Log.e(LOG_TAG, ex.getMessage(), ex);
+            }
+        });
+    }
+
     private void searchPlaceUnknown(String text, AIResponse aiRes) throws InterruptedException {
         String textSpeech = aiRes.getResult().getFulfillment().getSpeech();
         sendMessage(textSpeech, false);
         speak(textSpeech, true);
+        shouldResetContext = false;
     }
 
     private void searchPlaces(String key, AIResponse aiResponse) {
@@ -829,6 +871,40 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         Log.d(LOG_TAG, "stop TRIGGER");
         Intent intent = new Intent(this, Trigger.class);
         stopService(intent);
+        if (downLoadBroadCast == null) {
+            ProgressDialog waitingDialog = DialogUtils.showProgressDialog(this);
+            downLoadBroadCast = new DownLoadBroadCast(new DownLoadBroadCast.OnReceive() {
+                @Override
+                public void onReceiveProgress(int progress) {
+                    waitingDialog.dismiss();
+                    initProgressDialog();
+                    downloadDialog.setMessage("Downloading... ");
+                    downloadDialog.setProgress(progress);
+                    downloadDialog.show();
+                }
+
+                @Override
+                public void onFinish() {
+//                    unregisterReceiver(downLoadBroadCast);
+                }
+
+                @Override
+                public void onWaiting() {
+                    waitingDialog.show();
+                }
+
+                @Override
+                public void onRetry() {
+                    updateApp(viewModel.carResponse);
+                }
+            });
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(DownLoadBroadCast.ACTION_SEND_PROGRESS);
+            intentFilter.addAction(DownLoadBroadCast.ACTION_FINISH);
+            intentFilter.addAction(DownLoadBroadCast.ACTION_WAITING);
+            intentFilter.addAction(DownLoadBroadCast.ACTION_RETRY);
+            registerReceiver(downLoadBroadCast, intentFilter);
+        }
     }
 
     /**
@@ -867,6 +943,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         //Start service
         Intent intent = new Intent(this, Trigger.class);
         stopService(intent);
+        if (downLoadBroadCast != null) {
+            unregisterReceiver(downLoadBroadCast);
+        }
+        if (downloadDialog != null) {
+            downloadDialog.dismiss();
+        }
 
     }
 
@@ -997,6 +1079,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
 
+    public void updateApp(CarResponse carResponse) {
+        CarResponse.UpdateVersion updateVersion = carResponse.getVersion();
+        boolean forceUpdate = updateVersion.getForced() == 1;
+        boolean update = updateVersion.getUpdate() == 1;
+        if (update) {
+            UpdateChecker.checkForDialog(this, updateVersion.getUrl(), forceUpdate, updateVersion.getDescription());
+        }
+
+    }
+
     private Boolean calculateResetContext(long previousProcessTime, long currentProcessTime) {
         if (previousProcessTime == 0) return false;
         if (previousProcessTime == -1) return true;
@@ -1010,4 +1102,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private boolean shouldResetContext = false;
     private long processTime = 0;
+
+    private void initProgressDialog() {
+        if (downloadDialog == null) {
+            downloadDialog = new ProgressDialog(this);
+            downloadDialog.setMax(100);
+            downloadDialog.setMessage("Downloading..");
+            downloadDialog.setCancelable(false);
+            downloadDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        }
+        downloadDialog.show();
+    }
 }

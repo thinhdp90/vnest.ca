@@ -1,2 +1,4 @@
+include ':opencam'
+include ':updatelibrary'
 rootProject.name='Vnest_CA'
 include ':app', ':pocketsphinx-android-5prealpha-release'
