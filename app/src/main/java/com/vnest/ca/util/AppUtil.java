@@ -3,10 +3,11 @@ package com.vnest.ca.util;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 
 import com.vnest.ca.entity.Poi;
 
-public class NavigationUtil {
+public class AppUtil {
     public static void navigationOtPointByName(Double latitude, Double longitude, Context context) {
         Uri intentUri = Uri.parse("google.navigation:ll" + latitude + "," + longitude);
         Intent routeIntent = new Intent(Intent.ACTION_VIEW, intentUri);
@@ -51,4 +52,18 @@ public class NavigationUtil {
         }
         context.startActivity(mapIntent);
     }
+
+    public static void openYoutube(Context context, String url) {
+        //        com.vanced.android.youtube
+        //        com.google.android.youtube
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(url));
+        intent.setPackage("com.vanced.android.youtube");
+        if (intent.resolveActivity(context.getPackageManager()) == null) {
+            intent.setPackage("com.google.android.youtube");
+        }
+        context.startActivity(intent);
+    }
 }
+
+

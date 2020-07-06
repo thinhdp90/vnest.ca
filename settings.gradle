@@ -1,3 +1,4 @@
+include ':VTV'
 include ':opencam'
 include ':updatelibrary'
 rootProject.name='Vnest_CA'

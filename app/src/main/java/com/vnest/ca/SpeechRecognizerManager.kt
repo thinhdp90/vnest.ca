@@ -74,7 +74,7 @@ class SpeechRecognizerManager(
     }
 
     fun stopListening() {
-        Log.e(TAG,"=============Stop listening=============")
+        Log.e(TAG, "=============Stop listening=============")
         speechRecognizer.let {
             it.stopListening()
             it.cancel()
@@ -97,16 +97,20 @@ class SpeechRecognizerManager(
             alarmManager.setStreamMute(AudioManager.STREAM_NOTIFICATION, shouldMute)
             alarmManager.setStreamMute(AudioManager.STREAM_ALARM, shouldMute)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if(shouldMute) {
+                if (shouldMute) {
                     alarmManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0)
-                } else{
+                } else {
                     alarmManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0)
                 }
             } else {
                 alarmManager.setStreamMute(AudioManager.STREAM_MUSIC, shouldMute)
             }
-            alarmManager.setStreamMute(AudioManager.STREAM_RING, shouldMute)
-            alarmManager.setStreamMute(AudioManager.STREAM_SYSTEM, shouldMute)
+            try {
+                alarmManager.setStreamMute(AudioManager.STREAM_RING, shouldMute)
+                alarmManager.setStreamMute(AudioManager.STREAM_SYSTEM, shouldMute)
+            } catch (e: Exception) {
+                Log.e("Mute volume", e.javaClass.name)
+            }
         }
     }
 

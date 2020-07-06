@@ -40,4 +40,38 @@ public class ApiCall {
                 .create(API.class);
 
     }
+
+    public ApiVtv getApiVtv() {
+        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
+        httpLoggingInterceptor.level(HttpLoggingInterceptor.Level.BODY);
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(httpLoggingInterceptor)
+
+                .build();
+        return new Retrofit.Builder()
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create(new GsonBuilder()
+                        .setLenient()
+                        .create()))
+                .baseUrl("https://vtvgo.vn/")
+                .build()
+                .create(ApiVtv.class);
+    }
+
+    public ApiVtv getFirebaseApiVtv() {
+        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
+        httpLoggingInterceptor.level(HttpLoggingInterceptor.Level.BODY);
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(httpLoggingInterceptor)
+
+                .build();
+        return new Retrofit.Builder()
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create(new GsonBuilder()
+                        .setLenient()
+                        .create()))
+                .baseUrl("https://firebaseinstallations.googleapis.com/")
+                .build()
+                .create(ApiVtv.class);
+    }
 }

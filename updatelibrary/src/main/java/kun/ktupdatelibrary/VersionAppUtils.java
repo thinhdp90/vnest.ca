@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 
 
-public class AppUtils {
+public class VersionAppUtils {
 
     public static int getVersionCode(Context mContext) {
         if (mContext != null) {

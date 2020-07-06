@@ -2,15 +2,16 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     buildToolsVersion "29.0.3"
 
     defaultConfig {
         applicationId "com.vnest.ca"
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
+
 
 //        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -22,6 +23,11 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    configurations {
+        all {
+            exclude module: 'httpclient'
         }
     }
 
@@ -72,10 +78,15 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.10.0'
     implementation 'com.google.android.exoplayer:exoplayer-hls:2.10.0'
     implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.10.0'
+
+//    implementation 'com.google.api-client:google-api-client:1.30.9'
+//    implementation 'com.google.api-client:google-api-client-android:1.30.9' exclude module: 'httpclient'
+
     implementation project(':updatelibrary')
     implementation project(':opencam')
+    implementation project(':VTV')
 
 }
-ant.importBuild 'assets.xml'
-preBuild.dependsOn(list, checksum)
-clean.dependsOn(clean_assets)
+//ant.importBuild 'assets.xml'
+//preBuild.dependsOn(list, checksum)
+//clean.dependsOn(clean_assets)

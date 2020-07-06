@@ -2,12 +2,12 @@ package com.vnest.ca.feature.result;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -26,12 +26,9 @@ import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.source.ads.AdsMediaSource;
 import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
-import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.PlayerView;
@@ -42,9 +39,7 @@ import com.google.android.exoplayer2.util.Util;
 import com.vnest.ca.R;
 import com.vnest.ca.activities.MainActivity;
 import com.vnest.ca.activities.ViewModel;
-import com.vnest.ca.util.YouTubeVideoInfoRetriever;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -61,6 +56,7 @@ public class FragmentResult extends Fragment {
     private PlayerView playerView;
     private ExoPlayer exoPlayer;
     private TrackSelector trackSelector;
+    private ImageView btnClosePlayerView;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -81,19 +77,6 @@ public class FragmentResult extends Fragment {
     public void onStart() {
         super.onStart();
         initializePlayer();
-
-        String youTubeVideoID = "Biw9V615oyM";
-
-        YouTubeVideoInfoRetriever retriever = new YouTubeVideoInfoRetriever();
-//        playVideo("https%3A%2F%2Fyoutu.be%2FBiw9V615oyM");
-
-        try {
-            retriever.retrieve(youTubeVideoID);
-            playVideo("https://www.twitch.tv/1f6a29fe-b794-412a-8ba8-cf9f05386b89");
-            System.out.println(retriever.getInfo(YouTubeVideoInfoRetriever.KEY_DASH_VIDEO));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public void initView(View view) {
@@ -102,6 +85,7 @@ public class FragmentResult extends Fragment {
         btnVoice = view.findViewById(R.id.btnVoice);
         recognitionProgressView = view.findViewById(R.id.recognition_view);
         playerView = view.findViewById(R.id.playerView);
+        btnClosePlayerView = view.findViewById(R.id.btnClosePlayerView);
         initRecognitionProgressView();
     }
 
@@ -116,6 +100,13 @@ public class FragmentResult extends Fragment {
             } else {
                 startRecognition();
             }
+        });
+        btnClosePlayerView.setOnClickListener(v -> {
+            btnClosePlayerView.setVisibility(View.GONE);
+            playerView.setVisibility(View.GONE);
+            exoPlayer.stop();
+            btnVoice.setVisibility(View.VISIBLE);
+            recognitionProgressView.setVisibility(View.VISIBLE);
         });
         btnBack.setOnClickListener(view1 -> {
             Objects.requireNonNull(getActivity()).onBackPressed();
@@ -151,6 +142,7 @@ public class FragmentResult extends Fragment {
         });
         mediaSourceFactory = new DefaultDataSourceFactory(requireContext(), Util.getUserAgent(requireContext(), "vnest"));
 
+        viewModel.getLiveDataOpenVTV().observe(getViewLifecycleOwner(), this::playVideo);
     }
 
     private void setUpRecognitionsUi() {
@@ -250,6 +242,11 @@ public class FragmentResult extends Fragment {
     }
 
     private void playVideo(String url) {
+        finishRecognition();
+        playerView.setVisibility(View.VISIBLE);
+        btnVoice.setVisibility(View.GONE);
+        recognitionProgressView.setVisibility(View.GONE);
+        btnClosePlayerView.setVisibility(View.VISIBLE);
         MediaSource mediaSource = buildMediaSource(Uri.parse(url));
         exoPlayer.prepare(mediaSource, true, false);
     }

@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.vnest.ca.R;
 import com.vnest.ca.entity.Poi;
-import com.vnest.ca.util.NavigationUtil;
+import com.vnest.ca.util.AppUtil;
 
 import java.util.List;
 
@@ -79,7 +79,7 @@ public class AdapterResultChild extends RecyclerView.Adapter<RecyclerView.ViewHo
                 Glide.with(imageView).load(poi.getImg())
                         .into(imageView);
                 itemView.setOnClickListener(view1 -> {
-                    NavigationUtil.displayPointToMap(poi, itemView.getContext());
+                    AppUtil.displayPointToMap(poi, itemView.getContext());
                 });
             } catch (Exception e) {
 

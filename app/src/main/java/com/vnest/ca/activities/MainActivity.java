@@ -34,7 +34,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -43,6 +42,7 @@ import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -79,7 +79,7 @@ import com.vnest.ca.feature.home.FragmentHome;
 import com.vnest.ca.feature.result.FragmentResult;
 import com.vnest.ca.triggerword.Trigger;
 import com.vnest.ca.util.DialogUtils;
-import com.vnest.ca.util.NavigationUtil;
+import com.vnest.ca.util.AppUtil;
 import com.vnest.ca.util.PhoneUtils;
 
 import org.jetbrains.annotations.NotNull;
@@ -110,6 +110,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private static final String LOG_TAG = "VNest";
     private static final int UPDATE_AFTER_PROCESS_TEXT = 4;
     public static final int RESTART_VOICE_RECOGNITION = 1;
+    public static final int STOP_VOICE_RECOGNITION = 2;
     private static final int REQUEST_PERMISSION_CODE = 101;
     private static final int PICK_CONTACT_CODE = 102;
 
@@ -174,6 +175,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
      * Call from contact
      **/
     private static final String ACTION_CALL_FROM_CONTACT = "CallFromContact";
+
+    /**
+     * Open VTV
+     **/
+    private static final String ACTION_OPEN_VTV = "PlayVTV";
 
     private String[] permissions = {Manifest.permission.INTERNET,
             Manifest.permission.RECORD_AUDIO,
@@ -260,6 +266,28 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 Locale.getDefault());
         mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 20000);
         mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 20000);
+
+        sendMessage("gọi điện cho a hung",true);
+        processing_text("gọi điện cho a hung",false);
+
+    }
+
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        Log.e("Action", event.getAction() + "");
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_BUTTON_PRESS:
+                Log.e("Key", event.getActionIndex() + "");
+                break;
+        }
+        return super.onGenericMotionEvent(event);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        Log.e("Key", keyCode + "");
+
+        return super.onKeyDown(keyCode, event);
     }
 
     private void init() {
@@ -442,6 +470,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     case RESTART_VOICE_RECOGNITION:
                         viewModel.getLiveDataStartRecord().postValue(true);
                         break;
+                    case STOP_VOICE_RECOGNITION:
+                        viewModel.getLiveDataStartRecord().postValue(false);
+                        break;
                     case UPDATE_AFTER_PROCESS_TEXT:
                         ArrayList<Poi> poiArrayList = (ArrayList<Poi>) msg.obj;
                         viewModel.getLiveListPoi().postValue(poiArrayList);
@@ -468,7 +499,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 @Override
                 public void onStart(String utteranceId) {
                     Log.d(LOG_TAG, "On Start");
-                    finishRecognition();
+                    android.os.Message message = mHandler.obtainMessage(STOP_VOICE_RECOGNITION);
+                    message.sendToTarget();
+//                    finishRecognition();
                 }
 
                 @Override
@@ -511,7 +544,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 }
                 aiRequest.setSessionId(currentSessionId);
                 long currentProcessTime = System.currentTimeMillis();
-                if (resetContext || calculateResetContext(processTime, currentProcessTime) || resetContext) {
+                if (resetContext || calculateResetContext(processTime, currentProcessTime)) {
                     Log.e(LOG_TAG, "============Reset context=============");
                     contexts = null;
                     aiRequest.setResetContexts(true);
@@ -560,6 +593,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         case OPEN_MAP_TO:
                             searchPlaces(action, aiRes);
                             break;
+                        case ACTION_OPEN_VTV:
+                            openVtv(aiRes, code);
+                            break;
                         case INPUT_UN_KNOW:
                             searchInputUnknown(aiRes);
                             break;
@@ -570,7 +606,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             searchYoutube(aiRes, code);
                             break;
                         case ACTION_CALL_FROM_CONTACT:
-                            callTo(aiRequest, code);
+                            callTo(aiRes, code);
                             break;
                         default:
                             if (text.toLowerCase().contains(KEY_WEATHER)) {
@@ -596,22 +632,52 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         thread.start();
     }
 
-    private void callTo(AIRequest aiRequest, String code) {
-        PhoneUtils.callToContact(this, "Kun", new PhoneUtils.OnCallListener() {
-            @Override
-            public void onSuccess() {
-                Log.e(LOG_TAG, "Call success");
-
+    private void openVtv(AIResponse response, String code) {
+        if (code.endsWith("0")) {
+            Log.e("Code", code);
+        } else {
+            Log.e(LOG_TAG, new Gson().toJson(response.getResult().getFulfillment().getData()));
+            try {
+                JsonElement element = response.getResult().getFulfillment().getData().get("channel");
+                int channel = element.getAsInt();
+                viewModel.getVtvLink(channel, stream -> {
+                    sendMessage("Đang mở VTV" + channel + "...", false);
+                    startResultFragment();
+                    viewModel.getLiveDataOpenVTV().postValue(stream.getLink());
+                    resetContext();
+                });
+            } catch (Exception ex) {
+                speak(NO_DATA_FOUND);
+                sendMessage(NO_DATA_FOUND, false);
             }
 
-            @Override
-            public void onError(Exception ex) {
-                if (ex instanceof NullPointerException) {
-                    DialogUtils.getConfirmDialog(MainActivity.this, "No Contact", "There are no contact found!").show();
+        }
+    }
+
+    private void callTo(AIResponse aiResponse, String code) {
+        if (code.endsWith("0")) {
+
+        } else {
+            Log.e("Response", new Gson().toJson(aiResponse.getResult().getFulfillment().getData()));
+            JsonElement element = aiResponse.getResult().getFulfillment().getData().get("who");
+            String name = element.getAsString();
+            PhoneUtils.callToContact(this, name, new PhoneUtils.OnCallListener() {
+                @Override
+                public void onSuccess() {
+                    Log.e(LOG_TAG, "Call success");
+
                 }
-                Log.e(LOG_TAG, ex.getMessage(), ex);
-            }
-        });
+
+                @Override
+                public void onError(Exception ex) {
+                    if (ex instanceof NullPointerException) {
+                        DialogUtils.getConfirmDialog(MainActivity.this, "No Contact", "There are no contact found!").show();
+                    }
+                    Log.e(LOG_TAG, ex.getMessage(), ex);
+                }
+            });
+        }
+
     }
 
     private void searchPlaceUnknown(String text, AIResponse aiRes) throws InterruptedException {
@@ -633,12 +699,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 for (JsonElement element : dataResponse) {
                     poiArrayList.add(gson.fromJson(element, Poi.class));
                 }
-                ItemNavigationAdapter adapter = new ItemNavigationAdapter(poi -> NavigationUtil.navigationToPoint(poi, MainActivity.this));
+                ItemNavigationAdapter adapter = new ItemNavigationAdapter(poi -> AppUtil.navigationToPoint(poi, MainActivity.this));
                 if (key.toLowerCase().equals("openmapto")) {
                     try {
                         sendMessage(NAVIGATE_TO + poiArrayList.get(0).getTitle() + "...", false);
                         Thread.sleep(1000);
-                        NavigationUtil.navigationToPoint(poiArrayList.get(0), MainActivity.this);
+                        AppUtil.navigationToPoint(poiArrayList.get(0), MainActivity.this);
                         resetContext();
                     } catch (Exception e) {
                         speak(CAN_NOT_FIND_PLACE);
@@ -658,7 +724,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             } else {
                 Poi poi = gson.fromJson(dataResponse.get(0), Poi.class);
                 sendMessage(NAVIGATE_TO + poi.getTitle() + "...", false);
-                NavigationUtil.navigationToPoint(poi, MainActivity.this);
+                AppUtil.navigationToPoint(poi, MainActivity.this);
                 resetContext();
             }
         } catch (Exception e) {
@@ -682,13 +748,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             sendMessage(speech, false);
             speak(speech, true);
         } else {
-            Youtube video = gson.fromJson(aiRes.getResult().getFulfillment().getData().get(KEY_JSON).getAsJsonArray().get(0).toString(), Youtube.class);
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse(video.getHref()));
-            intent.setPackage("com.google.android.youtube");
-            startActivity(intent);
-            sendMessage(video.getHref(), false);
-            resetContext();
+            try {
+                Youtube video = gson.fromJson(aiRes.getResult().getFulfillment().getData().get(KEY_JSON).getAsJsonArray().get(0).toString(), Youtube.class);
+                AppUtil.openYoutube(this,video.getHref());
+                sendMessage(video.getTitle(), false);
+                resetContext();
+            } catch (IndexOutOfBoundsException ex) {
+                speak(NO_DATA_FOUND);
+            }
+
         }
     }
 
@@ -734,7 +802,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             int end = text.length();
             String location = text.substring(start, end).replace(" ", "+");
             Log.e(LOG_TAG, "Key " + location);
-            NavigationUtil.navigationToLocation(location, this);
+            AppUtil.navigationToLocation(location, this);
             sendMessage(FIND_WAY_TO + location, false);
             resetContext();
 
@@ -745,7 +813,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             int end = text.indexOf(string_end);
             String location = text.substring(start, end);
             sendMessage("Tìm " + location + "gần nhất", false);
-            NavigationUtil.displayLocationToMap(location, this);
+            AppUtil.displayLocationToMap(location, this);
             resetContext();
         } else {
             String string_start = KEY_SEARCH;
