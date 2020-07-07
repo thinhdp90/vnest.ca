@@ -47,6 +47,7 @@ public class FragmentResult extends Fragment {
     private final static String LOG_TAG = "Vnest Fragment Result";
     private RecyclerView mListResult;
     private TextView btnBack;
+    private View iconBack;
     private AdapterResult adapter;
     private ViewModel viewModel;
     private Button btnVoice;
@@ -81,6 +82,7 @@ public class FragmentResult extends Fragment {
 
     public void initView(View view) {
         btnBack = view.findViewById(R.id.btn_back);
+        iconBack = view.findViewById(R.id.icon_back);
         mListResult = view.findViewById(R.id.mRecyclerView);
         btnVoice = view.findViewById(R.id.btnVoice);
         recognitionProgressView = view.findViewById(R.id.recognition_view);
@@ -105,11 +107,16 @@ public class FragmentResult extends Fragment {
             btnClosePlayerView.setVisibility(View.GONE);
             playerView.setVisibility(View.GONE);
             exoPlayer.stop();
+            btnBack.setVisibility(View.VISIBLE);
+            iconBack.setVisibility(View.VISIBLE);
             btnVoice.setVisibility(View.VISIBLE);
-            recognitionProgressView.setVisibility(View.VISIBLE);
+            recognitionProgressView.setVisibility(View.INVISIBLE);
         });
         btnBack.setOnClickListener(view1 -> {
             Objects.requireNonNull(getActivity()).onBackPressed();
+        });
+        iconBack.setOnClickListener(v -> {
+            btnBack.performClick();
         });
 
         viewModel.getListMessLiveData().observe(getViewLifecycleOwner(), list -> {
@@ -244,8 +251,10 @@ public class FragmentResult extends Fragment {
     private void playVideo(String url) {
         finishRecognition();
         playerView.setVisibility(View.VISIBLE);
+        btnBack.setVisibility(View.INVISIBLE);
+        iconBack.setVisibility(View.INVISIBLE);
         btnVoice.setVisibility(View.GONE);
-        recognitionProgressView.setVisibility(View.GONE);
+        recognitionProgressView.setVisibility(View.INVISIBLE);
         btnClosePlayerView.setVisibility(View.VISIBLE);
         MediaSource mediaSource = buildMediaSource(Uri.parse(url));
         exoPlayer.prepare(mediaSource, true, false);

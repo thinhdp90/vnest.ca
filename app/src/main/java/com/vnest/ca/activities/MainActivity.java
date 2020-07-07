@@ -102,6 +102,8 @@ import ai.api.android.AIConfiguration;
 import ai.api.android.AIService;
 import ai.api.model.AIRequest;
 import ai.api.model.AIResponse;
+import kun.kt.vtv.Stream;
+import kun.kt.vtv.VtvFetchLinkStream;
 import kun.ktupdatelibrary.DownLoadBroadCast;
 import kun.ktupdatelibrary.UpdateChecker;
 
@@ -267,8 +269,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 20000);
         mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 20000);
 
-        sendMessage("gọi điện cho a hung",true);
-        processing_text("gọi điện cho a hung",false);
+//        sendMessage("Mở vtv6", true);
+//        processing_text("Mở vtv6", false);
 
     }
 
@@ -640,11 +642,19 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             try {
                 JsonElement element = response.getResult().getFulfillment().getData().get("channel");
                 int channel = element.getAsInt();
-                viewModel.getVtvLink(channel, stream -> {
-                    sendMessage("Đang mở VTV" + channel + "...", false);
-                    startResultFragment();
-                    viewModel.getLiveDataOpenVTV().postValue(stream.getLink());
-                    resetContext();
+                viewModel.getVtvLink(channel, new VtvFetchLinkStream.OnSuccessListener() {
+                    @Override
+                    public void onGetSuccess(Stream stream) {
+                        sendMessage("Đang mở VTV" + channel + "...", false);
+                        startResultFragment();
+                        viewModel.getLiveDataOpenVTV().postValue(stream.getLink());
+                        resetContext();
+                    }
+
+                    @Override
+                    public void onGetError() {
+                        //dialog error
+                    }
                 });
             } catch (Exception ex) {
                 speak(NO_DATA_FOUND);
@@ -750,7 +760,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         } else {
             try {
                 Youtube video = gson.fromJson(aiRes.getResult().getFulfillment().getData().get(KEY_JSON).getAsJsonArray().get(0).toString(), Youtube.class);
-                AppUtil.openYoutube(this,video.getHref());
+                AppUtil.openYoutube(this, video.getHref());
                 sendMessage(video.getTitle(), false);
                 resetContext();
             } catch (IndexOutOfBoundsException ex) {

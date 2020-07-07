@@ -114,7 +114,7 @@ public class ViewModel extends androidx.lifecycle.ViewModel {
         ApiCall.getInstance().getFirebaseApiVtv().getGenerateToken(VtvFirebaseRequest.getDefault()).enqueue(new Callback<VtvFirebaseResponse>() {
             @Override
             public void onResponse(Call<VtvFirebaseResponse> call, Response<VtvFirebaseResponse> response) {
-                Log.e("REsponse", new Gson().toJson(response.body()));
+                Log.e("Response", new Gson().toJson(response.body()));
             }
 
             @Override

@@ -69,6 +69,7 @@
     <com.google.android.exoplayer2.ui.PlayerView
         android:id="@+id/playerView"
         android:layout_width="match_parent"
+        app:surface_type="surface_view"
         android:layout_height="match_parent"
         android:visibility="gone" />
 
