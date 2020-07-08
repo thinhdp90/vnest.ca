@@ -37,7 +37,7 @@ class SpeechRecognitionListener(
 
     override fun onEndOfSpeech() {
         Log.e("onEndOfSpeech", "onEndOfSpeech")
-        onMuteVolume(true)
+        onMuteVolume(false)
     }
 
     @Synchronized
@@ -58,7 +58,7 @@ class SpeechRecognitionListener(
     }
 
     override fun onPartialResults(partialResults: Bundle?) {
-        onMuteVolume(true)
+//        onMuteVolume(false)
         Log.e("onPartialResults", "onPartialResults")
         if (partialResults != null) {
             val texts = partialResults.getStringArrayList("android.speech.extra.UNSTABLE_TEXT")
@@ -67,7 +67,7 @@ class SpeechRecognitionListener(
     }
 
     override fun onResults(results: Bundle?) {
-        onMuteVolume(true)
+        onMuteVolume(false)
 
         if (results != null) {
             val text = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)

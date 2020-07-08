@@ -34,9 +34,10 @@ public class PhoneUtils {
                 listContact.clear();
                 while (cursor.moveToNext()) {
                     String displayName = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)).toLowerCase();
+                    Log.e("name",displayName);
                     listContact.add(new Contact(cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)),
                             null, displayName, null));
-                    if (displayName.contains(name)) {
+                    if (displayName.contains(name.toLowerCase())) {
                         return getContactNumber(context, cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)));
                     }
                 }

@@ -97,20 +97,20 @@ class SpeechRecognizerManager(
             alarmManager.setStreamMute(AudioManager.STREAM_NOTIFICATION, shouldMute)
             alarmManager.setStreamMute(AudioManager.STREAM_ALARM, shouldMute)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (shouldMute) {
-                    alarmManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0)
-                } else {
-                    alarmManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0)
-                }
+                val adjustMuteOrUnMute = if (shouldMute) AudioManager.ADJUST_MUTE else AudioManager.ADJUST_UNMUTE
+                alarmManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, adjustMuteOrUnMute, 0)
+                alarmManager.adjustStreamVolume(AudioManager.STREAM_NOTIFICATION, adjustMuteOrUnMute, 0)
+                alarmManager.adjustStreamVolume(AudioManager.STREAM_ALARM, adjustMuteOrUnMute, 0)
+                alarmManager.adjustStreamVolume(AudioManager.STREAM_SYSTEM, adjustMuteOrUnMute, 0)
             } else {
                 alarmManager.setStreamMute(AudioManager.STREAM_MUSIC, shouldMute)
             }
-            try {
-                alarmManager.setStreamMute(AudioManager.STREAM_RING, shouldMute)
-                alarmManager.setStreamMute(AudioManager.STREAM_SYSTEM, shouldMute)
-            } catch (e: Exception) {
-                Log.e("Mute volume", e.javaClass.name)
-            }
+//            try {
+//                alarmManager.setStreamMute(AudioManager.STREAM_RING, shouldMute)
+//                alarmManager.setStreamMute(AudioManager.STREAM_SYSTEM, shouldMute)
+//            } catch (e: Exception) {
+//                Log.e("Mute volume", e.javaClass.name)
+//            }
         }
     }
 

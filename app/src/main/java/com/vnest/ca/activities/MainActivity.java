@@ -269,8 +269,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 20000);
         mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 20000);
 
-//        sendMessage("Mở vtv6", true);
-//        processing_text("Mở vtv6", false);
 
     }
 
@@ -546,10 +544,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 }
                 aiRequest.setSessionId(currentSessionId);
                 long currentProcessTime = System.currentTimeMillis();
-                if (resetContext || calculateResetContext(processTime, currentProcessTime)) {
+                if (resetContext || calculateResetContext(processTime, currentProcessTime) || contexts == null) {
                     Log.e(LOG_TAG, "============Reset context=============");
                     contexts = null;
                     aiRequest.setResetContexts(true);
+                    aiRequest.setContexts(null);
                 }
                 processTime = currentProcessTime;
                 if (contexts != null) {
@@ -654,6 +653,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     @Override
                     public void onGetError() {
                         //dialog error
+                        sendMessage("Không tìm thấy VTV" + channel, false);
+                        speak("Không tìm thấy VTV" + channel);
                     }
                 });
             } catch (Exception ex) {
@@ -675,13 +676,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 @Override
                 public void onSuccess() {
                     Log.e(LOG_TAG, "Call success");
-
                 }
 
                 @Override
                 public void onError(Exception ex) {
                     if (ex instanceof NullPointerException) {
-                        DialogUtils.getConfirmDialog(MainActivity.this, "No Contact", "There are no contact found!").show();
+                        String message = "Không tìm thấy liên hệ!";
+                        sendMessage(message, false);
+                        speak(message);
+//                        DialogUtils.getConfirmDialog(MainActivity.this, "No Contact", "There are no contact found!").show();
                     }
                     Log.e(LOG_TAG, ex.getMessage(), ex);
                 }
@@ -757,6 +760,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             String speech = aiRes.getResult().getFulfillment().getSpeech();
             sendMessage(speech, false);
             speak(speech, true);
+            shouldResetContext = false;
         } else {
             try {
                 Youtube video = gson.fromJson(aiRes.getResult().getFulfillment().getData().get(KEY_JSON).getAsJsonArray().get(0).toString(), Youtube.class);
@@ -765,6 +769,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 resetContext();
             } catch (IndexOutOfBoundsException ex) {
                 speak(NO_DATA_FOUND);
+                sendMessage(NO_DATA_FOUND, false);
+                resetContext();
             }
 
         }
@@ -785,8 +791,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(Uri.parse(audio.getLink()));
                 intent.setPackage("com.zing.mp3");
-                startActivity(intent);
+                if (intent.resolveActivity(getPackageManager()) == null) {
+                    intent = new Intent(Intent.ACTION_VIEW, Uri.parse(audio.getLink()));
+                }
                 resetContext();
+                startActivity(intent);
             } else {
                 /**
                  * @ListenAgainSongName
@@ -983,6 +992,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             intentFilter.addAction(DownLoadBroadCast.ACTION_RETRY);
             registerReceiver(downLoadBroadCast, intentFilter);
         }
+
+        startResultFragment();
+        viewModel.getLiveDataStartRecord().postValue(true);
+//        resetContext();
+
     }
 
     /**
@@ -994,6 +1008,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     protected void onPause() {
         super.onPause();
         Log.d(LOG_TAG, "start TRIGGER");
+        resetContext();
         if (checkPermission()) {
             finishRecognition();
             if (speechRecognizer != null) {
@@ -1014,6 +1029,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @Override
     protected void onDestroy() {
+        Log.e(LOG_TAG, "onDestroy");
         super.onDestroy();
         if (speechRecognizer != null) {
             speechRecognizer.destroy();
@@ -1176,6 +1192,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private void resetContext() {
         shouldResetContext = true;
+        contexts = null;
     }
 
     private boolean shouldResetContext = false;
@@ -1191,4 +1208,5 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
         downloadDialog.show();
     }
+
 }
