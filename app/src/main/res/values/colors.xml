@@ -17,5 +17,6 @@
     </color>
     <color name="white">#FFFFFF</color>
     <color name="soft_green">#72c472</color>
-    <color name="water_blue">#109ddc</color>>
+    <color name="water_blue">#109ddc</color>
+    <color name="md_white_1000">#fff</color>>
 </resources>

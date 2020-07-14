@@ -3,6 +3,11 @@ package com.vnest.ca.util;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 
 import androidx.appcompat.app.AlertDialog;
@@ -12,6 +17,21 @@ import com.vnest.ca.R;
 public class DialogUtils {
     static final String CANCEL = "Cancel";
     static final String CONFIRM = "OK";
+
+
+    public static AlertDialog showProgressDialog(Context context, boolean cancelable) {
+        View view = LayoutInflater.from(context).inflate(R.layout.progress_dialog, null, false);
+        final AlertDialog progress = new AlertDialog.Builder(context)
+                .setView(view)
+                .setCancelable(cancelable)
+                .create();
+        Window window = progress.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+        progress.show();
+        return progress;
+    }
 
     public static ProgressDialog showProgressDialog(Context context) {
         ProgressDialog waitingDialog = new ProgressDialog(context);
@@ -46,6 +66,12 @@ public class DialogUtils {
     public static AlertDialog getConfirmDialog(Context context, String title, String message) {
         return getConfirmDialog(context, title, message, null);
     }
+
+//    public static AlertDialog getActiveDialog(Context context) {
+//
+//        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+//
+//    }
 
     public interface OnConfirmListener {
         void onConfirm(DialogInterface dialogInterface);

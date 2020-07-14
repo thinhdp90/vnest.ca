@@ -1,8 +1,7 @@
 package com.vnest.ca.feature.home;
 
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
-import android.util.Log;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,20 +10,20 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.github.zagum.speechrecognitionview.RecognitionProgressView;
 import com.vnest.ca.R;
 import com.vnest.ca.activities.MainActivity;
 import com.vnest.ca.activities.ViewModel;
+import com.vnest.ca.database.sharepreference.VnestSharePreference;
 import com.vnest.ca.entity.Message;
+import com.vnest.ca.util.DialogActiveControl;
+import com.vnest.ca.util.DialogUtils;
 
 import java.util.Calendar;
-import java.util.Locale;
 import java.util.Objects;
 
 public class FragmentHome extends Fragment {
@@ -38,6 +37,8 @@ public class FragmentHome extends Fragment {
     private TextView btnBack;
     private TextView assistantText;
     private ViewModel viewModel;
+    private DialogActiveControl dialogActiveControl;
+    private AlertDialog progressDialog;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -52,6 +53,39 @@ public class FragmentHome extends Fragment {
         initView(view);
         initAction(view);
         return view;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        dialogActiveControl = new DialogActiveControl(requireContext(), new DialogActiveControl.OnActiveListener() {
+            @Override
+            public void onAccept() {
+                if (progressDialog == null) {
+                    progressDialog = DialogUtils.showProgressDialog(requireContext(), false);
+                } else {
+                    progressDialog.show();
+                    dialogActiveControl.dismiss();
+                    new Handler().postDelayed(() -> progressDialog.dismiss(), 2000);
+                }
+            }
+
+            @Override
+            public void onSuccess(String activeCode) {
+                dialogActiveControl.dismiss();
+                VnestSharePreference.getInstance(requireContext()).saveActiveCode(activeCode);
+//                getMainActivity().startResultFragment();
+//                viewModel.getLiveDataStartRecord().postValue(true);
+            }
+
+            @Override
+            public void onFail() {
+
+            }
+        });
+        if (!VnestSharePreference.getInstance(requireContext()).isHadActiveCode()) {
+            dialogActiveControl.show();
+        }
     }
 
     private void initView(View view) {

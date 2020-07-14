@@ -21,7 +21,9 @@ class SpeechRecognizerManager(
     private var isListening = false
     val speechListener = SpeechRecognitionListener(
             onResultReady, {
-        restartListening()
+        if (isListening) {
+            restartListening()
+        }
     }, {
         muteVolume(it)
     })
@@ -59,7 +61,6 @@ class SpeechRecognizerManager(
                 speechRecognizer.cancel()
                 speechRecognizer.startListening(speechIntent)
                 isListening = true
-
             }
         } catch (e: Exception) {
             recreateVoicRecog()

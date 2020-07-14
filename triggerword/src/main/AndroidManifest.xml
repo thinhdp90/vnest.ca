@@ -1,0 +1,14 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.kt.triggerword">
+
+    <application>
+        <service android:name=".TriggerBindService" />
+        <service android:name=".TriggerService" />
+
+        <receiver
+            android:name=".TriggerBroadCast"
+            android:enabled="true"
+            android:exported="true" />
+    </application>
+</manifest>

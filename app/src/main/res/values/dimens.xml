@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="padding_medium">16dp</dimen>
+    <dimen name="height_def">45dp</dimen>
+    <dimen name="padding_large">20dp</dimen>
+
+    <dimen name="dialog_title_text_size">17sp</dimen>
+    <dimen name="dialog_body_text_size">16sp</dimen>
+    <dimen name="dialog_button_text_size">15sp</dimen>
+
+    <dimen name="padding_dialog_horizontal">24dp</dimen>
+    <dimen name="margin_button_dialog_horizontal">8dp</dimen>
+</resources>

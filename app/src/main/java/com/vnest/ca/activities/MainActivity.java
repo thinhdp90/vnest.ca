@@ -21,9 +21,11 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.app.SearchManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.location.Location;
@@ -33,6 +35,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
@@ -58,6 +61,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.kt.triggerword.AudioVolumeManager;
+import com.kt.triggerword.TriggerBindService;
+import com.kt.triggerword.TriggerBroadCast;
+import com.kt.triggerword.TriggerCallBack;
+import com.kt.triggerword.TriggerService;
 import com.kwabenaberko.openweathermaplib.constants.Lang;
 import com.kwabenaberko.openweathermaplib.constants.Units;
 import com.kwabenaberko.openweathermaplib.implementation.OpenWeatherMapHelper;
@@ -69,6 +77,7 @@ import com.vnest.ca.SpeechRecognizerManager;
 import com.vnest.ca.adapters.DefaultAssistantAdapter;
 import com.vnest.ca.adapters.ItemNavigationAdapter;
 import com.vnest.ca.api.model.CarResponse;
+import com.vnest.ca.database.sharepreference.VnestSharePreference;
 import com.vnest.ca.entity.Audio;
 import com.vnest.ca.entity.Message;
 import com.vnest.ca.entity.MyAIContext;
@@ -77,7 +86,6 @@ import com.vnest.ca.entity.Youtube;
 import com.vnest.ca.feature.home.AdapterHomeItemDefault;
 import com.vnest.ca.feature.home.FragmentHome;
 import com.vnest.ca.feature.result.FragmentResult;
-import com.vnest.ca.triggerword.Trigger;
 import com.vnest.ca.util.DialogUtils;
 import com.vnest.ca.util.AppUtil;
 import com.vnest.ca.util.PhoneUtils;
@@ -107,7 +115,7 @@ import kun.kt.vtv.VtvFetchLinkStream;
 import kun.ktupdatelibrary.DownLoadBroadCast;
 import kun.ktupdatelibrary.UpdateChecker;
 
-public class MainActivity extends AppCompatActivity implements LocationListener {
+public class MainActivity extends AppCompatActivity implements LocationListener, TriggerCallBack {
 
     private static final String LOG_TAG = "VNest";
     private static final int UPDATE_AFTER_PROCESS_TEXT = 4;
@@ -227,7 +235,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private DrawerLayout mDrawerLayout;
     private CoordinatorLayout mainLayout;
     public DownLoadBroadCast downLoadBroadCast;
+    private TriggerBroadCast triggerBroadCast;
     private ProgressDialog downloadDialog;
+    private long processTime = 0;
 
 
     private SpeechRecognizerManager speechRecognizerManager;
@@ -308,9 +318,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         Location location = locationManager.getLastKnownLocation(locationManager.NETWORK_PROVIDER);
         onLocationChanged(location);
         initTextToSpeech();
+
         final AIConfiguration config = new AIConfiguration(AI_CONFIG_ACCESS_TOKEN,
                 AIConfiguration.SupportedLanguages.English,
                 AIConfiguration.RecognitionEngine.System);
+
         aiService = AIService.getService(this, config);
     }
 
@@ -558,7 +570,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     }
                     aiRequest.setContexts(rqContexts);
                 }
+
                 Log.d(LOG_TAG, "===== aiRequest:" + gson.toJson(aiRequest));
+
                 try {
                     AIResponse aiRes = aiService.textRequest(aiRequest);
                     Log.d(LOG_TAG, gson.toJson(aiRes));
@@ -675,6 +689,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             PhoneUtils.callToContact(this, name, new PhoneUtils.OnCallListener() {
                 @Override
                 public void onSuccess() {
+                    resetContext();
                     Log.e(LOG_TAG, "Call success");
                 }
 
@@ -693,11 +708,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
 
-    private void searchPlaceUnknown(String text, AIResponse aiRes) throws InterruptedException {
+    private void searchPlaceUnknown(String text, AIResponse aiRes) {
         String textSpeech = aiRes.getResult().getFulfillment().getSpeech();
         sendMessage(textSpeech, false);
         speak(textSpeech, true);
-        shouldResetContext = false;
+//        shouldResetContext = false;
     }
 
     private void searchPlaces(String key, AIResponse aiResponse) {
@@ -760,7 +775,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             String speech = aiRes.getResult().getFulfillment().getSpeech();
             sendMessage(speech, false);
             speak(speech, true);
-            shouldResetContext = false;
+//            shouldResetContext = false;
         } else {
             try {
                 Youtube video = gson.fromJson(aiRes.getResult().getFulfillment().getData().get(KEY_JSON).getAsJsonArray().get(0).toString(), Youtube.class);
@@ -956,8 +971,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     protected void onResume() {
         super.onResume();
         Log.d(LOG_TAG, "stop TRIGGER");
-        Intent intent = new Intent(this, Trigger.class);
-        stopService(intent);
+        TriggerService.stopService(this);
         if (downLoadBroadCast == null) {
             ProgressDialog waitingDialog = DialogUtils.showProgressDialog(this);
             downLoadBroadCast = new DownLoadBroadCast(new DownLoadBroadCast.OnReceive() {
@@ -993,8 +1007,21 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             registerReceiver(downLoadBroadCast, intentFilter);
         }
 
-        startResultFragment();
-        viewModel.getLiveDataStartRecord().postValue(true);
+        if (triggerBroadCast == null) {
+            triggerBroadCast = new TriggerBroadCast(this);
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(TriggerBroadCast.ACTION_RESTART_APP);
+            intentFilter.addAction(TriggerBroadCast.ACTION_TURN_MIC_ON);
+            registerReceiver(triggerBroadCast, intentFilter);
+        }
+
+        if (VnestSharePreference.getInstance(this).isHadActiveCode()) {
+            startResultFragment();
+            viewModel.getLiveDataStartRecord().postValue(true);
+        }
+
+        onBeepSoundOfRecorder();
+
 //        resetContext();
 
     }
@@ -1015,13 +1042,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 speechRecognizer.stopListening();
             }
             //Start service
-            try {
-                Intent intent = new Intent(this, Trigger.class);
-                startService(intent);
-            } catch (Exception e) {
-                Log.e(LOG_TAG, e.getMessage(), e);
-            }
-
+            TriggerService.startService(this);
+            onBeepSoundOfRecorder();
         }
 
     }
@@ -1035,15 +1057,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             speechRecognizer.destroy();
         }
         //Start service
-        Intent intent = new Intent(this, Trigger.class);
-        stopService(intent);
         if (downLoadBroadCast != null) {
             unregisterReceiver(downLoadBroadCast);
         }
         if (downloadDialog != null) {
             downloadDialog.dismiss();
         }
-
     }
 
     private void deleteMessage() {
@@ -1052,7 +1071,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
 
     private void weather() {
-
         final ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("please waiting....");
         progressDialog.show();
@@ -1191,12 +1209,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     private void resetContext() {
-        shouldResetContext = true;
+//        shouldResetContext = true;
         contexts = null;
     }
 
-    private boolean shouldResetContext = false;
-    private long processTime = 0;
+//    private boolean shouldResetContext = false;
+
 
     private void initProgressDialog() {
         if (downloadDialog == null) {
@@ -1209,4 +1227,50 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         downloadDialog.show();
     }
 
+    private TriggerBindService myService;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            Toast.makeText(MainActivity.this, "onServiceConnected called", Toast.LENGTH_SHORT).show();
+            // We've binded to LocalService, cast the IBinder and get LocalService instance
+            TriggerBindService.LocalBinder binder = (TriggerBindService.LocalBinder) service;
+            myService = binder.getServiceInstance(); //Get instance of your service!
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            Toast.makeText(MainActivity.this, "onServiceDisconnected called", Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    public ServiceConnection getServiceConnection() {
+        return mConnection;
+    }
+
+    @Override
+    public void onRestartApp() {
+        Intent dialogIntent = new Intent(this, MainActivity.class);
+        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(dialogIntent);
+    }
+
+    @Override
+    public void onTurnMicOn() {
+        Intent intent = new Intent(this, TriggerBindService.class);
+        unbindService(mConnection);
+        stopService(intent);
+        viewModel.getLiveDataStartRecord().postValue(true);
+    }
+
+    @Override
+    public void onTurnMicOff() {
+
+    }
+
+    public void onBeepSoundOfRecorder() {
+        AudioVolumeManager.getInstance(this).muteVolume(true);
+    }
 }

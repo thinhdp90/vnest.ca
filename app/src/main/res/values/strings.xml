@@ -9,4 +9,8 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="media_url_mp4">blob:https://vtvgo.vn/22753d4f-d4a9-4b73-ac43-c7c5e73d9ec8</string>
     <string name="checking_for_update">Checking for update...</string>
+    <string name="active_title">Kích hoạt</string>
+    <string name="phone">Số điện thoại</string>
+    <string name="active_code">Mã kích hoạt</string>
+    <string name="accept">OK</string>
 </resources>

@@ -45,7 +45,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation 'com.github.zagum:SpeechRecognitionView:1.2.2'
-    implementation project(path: ':pocketsphinx-android-5prealpha-release')
+//    implementation project(path: ':pocketsphinx-android-5prealpha-release')
     implementation 'com.github.timigod:android-chat-ui:v0.1.4'
 //    implementation 'edu.cmu.pocketsphinx.android:pocketsphinx-android:5prealpha@aar'
     implementation 'com.github.KwabenBerko:OpenWeatherMap-Android-Library:2.0.1'
@@ -78,13 +78,15 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.10.0'
     implementation 'com.google.android.exoplayer:exoplayer-hls:2.10.0'
     implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.10.0'
-
+    implementation 'com.github.sachinvarma:Speech-Recognizer:0.0.1'
+    implementation 'com.tbruyelle.rxpermissions:rxpermissions:0.7.0@aar'
 //    implementation 'com.google.api-client:google-api-client:1.30.9'
 //    implementation 'com.google.api-client:google-api-client-android:1.30.9' exclude module: 'httpclient'
 
     implementation project(':updatelibrary')
     implementation project(':opencam')
     implementation project(':VTV')
+    implementation project(':triggerword')
 
 }
 //ant.importBuild 'assets.xml'

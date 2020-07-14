@@ -1,8 +1,6 @@
 package com.vnest.ca.feature.home;
 
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.speech.tts.TextToSpeech;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,11 +11,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.vnest.ca.R;
-import com.vnest.ca.ViewPortType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.function.Consumer;
 
 public class AdapterHomeItemDefault extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final String[] defItems = {"Chỉ đường đến hồ hoàn kiếm",

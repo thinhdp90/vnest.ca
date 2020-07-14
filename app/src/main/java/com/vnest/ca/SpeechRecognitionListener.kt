@@ -44,13 +44,16 @@ class SpeechRecognitionListener(
     override fun onError(error: Int) {
         Log.e("OnError", error.toString())
         when (error) {
-
             SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
-                onMuteVolume(false)
+                onMuteVolume(true)
                 onErrorNoMatch()
             }
             SpeechRecognizer.ERROR_NETWORK -> {
 
+            }
+            else -> {
+                onMuteVolume(true)
+                onErrorNoMatch()
             }
 
         }
@@ -68,7 +71,6 @@ class SpeechRecognitionListener(
 
     override fun onResults(results: Bundle?) {
         onMuteVolume(false)
-
         if (results != null) {
             val text = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
             if (text != null) {
