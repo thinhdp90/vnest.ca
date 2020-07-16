@@ -3,11 +3,11 @@
     package="com.kt.triggerword">
 
     <application>
-        <service android:name=".TriggerBindService" />
-        <service android:name=".TriggerService" />
+        <service android:name="ai.kt.triggerword.TriggerBindService" />
+        <service android:name="ai.kt.triggerword.TriggerService" />
 
         <receiver
-            android:name=".TriggerBroadCast"
+            android:name="ai.kt.triggerword.TriggerBroadCast"
             android:enabled="true"
             android:exported="true" />
     </application>

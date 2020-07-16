@@ -1,8 +1,10 @@
 package kun.ktupdatelibrary;
 
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 
 public class DownLoadBroadCast extends BroadcastReceiver {
     public static final String ACTION_SEND_PROGRESS = "progress";
@@ -11,6 +13,17 @@ public class DownLoadBroadCast extends BroadcastReceiver {
     public static final String ACTION_WAITING = "waiting";
     public static final String ACTION_RETRY = "retry";
     public static final String ACTION_TIMEOUT = "timeout";
+
+    public static DownLoadBroadCast initBroadCast(Context context, OnReceive onReceive) {
+        DownLoadBroadCast downLoadBroadCast = new DownLoadBroadCast(onReceive);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(DownLoadBroadCast.ACTION_SEND_PROGRESS);
+        intentFilter.addAction(DownLoadBroadCast.ACTION_FINISH);
+        intentFilter.addAction(DownLoadBroadCast.ACTION_WAITING);
+        intentFilter.addAction(DownLoadBroadCast.ACTION_RETRY);
+        context.registerReceiver(downLoadBroadCast, intentFilter);
+        return downLoadBroadCast;
+    }
 
     private OnReceive listener;
 

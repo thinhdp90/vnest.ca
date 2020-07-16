@@ -5,8 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg"
-    tools:context=".activities.MainActivity">
+    android:background="@drawable/ic_background_1280"
+    tools:context="ai.kitt.snowboy.activities.MainActivity">
 
     <View
         android:id="@+id/view_collapse"

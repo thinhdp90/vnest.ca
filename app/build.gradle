@@ -6,7 +6,7 @@ android {
     buildToolsVersion "29.0.3"
 
     defaultConfig {
-        applicationId "com.vnest.ca"
+        applicationId "ai.kitt.snowboy"
         minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
@@ -28,6 +28,13 @@ android {
     configurations {
         all {
             exclude module: 'httpclient'
+        }
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+
         }
     }
 
@@ -87,7 +94,7 @@ dependencies {
     implementation project(':opencam')
     implementation project(':VTV')
     implementation project(':triggerword')
-
+//    implementation project(':triggerwordoffline')
 }
 //ant.importBuild 'assets.xml'
 //preBuild.dependsOn(list, checksum)
