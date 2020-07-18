@@ -66,6 +66,7 @@ public class DialogActiveControl {
         window.setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
         window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         alertDialog.show();
+        editTextActiveCode.requestFocus();
     }
 
     public void dismiss() {

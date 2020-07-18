@@ -64,7 +64,6 @@ import com.kwabenaberko.openweathermaplib.constants.Lang;
 import com.kwabenaberko.openweathermaplib.constants.Units;
 import com.kwabenaberko.openweathermaplib.implementation.OpenWeatherMapHelper;
 import com.kwabenaberko.openweathermaplib.implementation.callbacks.CurrentWeatherCallback;
-import com.kwabenaberko.openweathermaplib.models.common.Main;
 import com.kwabenaberko.openweathermaplib.models.currentweather.CurrentWeather;
 
 import ai.kitt.snowboy.OnResultReady;
@@ -72,7 +71,7 @@ import ai.kitt.snowboy.R;
 import ai.kitt.snowboy.SpeechRecognizerManager;
 import ai.kitt.snowboy.api.model.ActiveCode;
 import ai.kitt.snowboy.api.model.ActiveResponse;
-import ai.kitt.snowboy.api.reepository.ActiveRepo;
+import ai.kitt.snowboy.api.repository.ActiveRepo;
 import ai.kitt.snowboy.service.TriggerOfflineService;
 import ai.kitt.snowboy.adapters.DefaultAssistantAdapter;
 import ai.kitt.snowboy.adapters.ItemNavigationAdapter;
@@ -119,7 +118,7 @@ import kun.ktupdatelibrary.DownLoadBroadCast;
 import kun.ktupdatelibrary.UpdateChecker;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
-
+    private static int callDeviceInfoTimes = 0;
     private static final String LOG_TAG = "VNest";
     private static final int UPDATE_AFTER_PROCESS_TEXT = 4;
     public static final int RESTART_VOICE_RECOGNITION = 1;
@@ -310,13 +309,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private void init() {
 
         initView();
-        deviceId = Settings.Secure.getString(getContentResolver(),
-                Settings.Secure.ANDROID_ID);
-        // Get phone's location
-        TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        String imei = telephonyManager.getDeviceId();
-
-        viewModel.sendCarInfo(deviceId, imei);
+        sendCarInfo();
         viewModel.getLiveDataUpdateResponse().observe(this, this::updateApp);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
@@ -332,6 +325,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 AIConfiguration.RecognitionEngine.System);
 
         aiService = AIService.getService(this, config);
+    }
+
+    private void sendCarInfo() {
+        deviceId = Settings.Secure.getString(getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+        // Get phone's location
+        TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        String imei = telephonyManager.getDeviceId();
+        if (callDeviceInfoTimes < 1) {
+            viewModel.sendCarInfo(deviceId, imei);
+        }
     }
 
     private void initView() {
@@ -1026,12 +1030,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 }
             }, MainActivity.class);
         }
-
-        if (VnestSharePreference.getInstance(this).isHadActiveCode()) {
+        if(checkPermission()) {
+            TriggerOfflineService.stopService(this);
             startResultFragment();
             viewModel.getLiveDataStartRecord().postValue(true);
         }
-        TriggerOfflineService.stopService(this);
+
+
 //        resetContext();
 
     }
@@ -1054,6 +1059,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
             //Start service
             TriggerOfflineService.startService(this, true);
+
         }
 
     }
@@ -1185,10 +1191,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         if (location != null) {
             latitude = location.getLatitude();
             longitude = location.getLongitude();
-
         }
 
-        Log.d("onLocationChanged", String.valueOf(latitude) + " " + String.valueOf(longitude));
+        Log.d("onLocationChanged", latitude + " " + longitude);
     }
 
     @Override
@@ -1207,6 +1212,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     public void updateApp(CarResponse carResponse) {
+        callDeviceInfoTimes++;
         CarResponse.UpdateVersion updateVersion = carResponse.getVersion();
         boolean forceUpdate = updateVersion.getForced() == 1;
         boolean update = updateVersion.getUpdate() == 1;
@@ -1215,7 +1221,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             UpdateChecker.checkForDialog(this, updateVersion.getUrl(), forceUpdate, updateVersion.getDescription());
             return;
         }
-        if (!carResponse.checkActiveStatus()) {
+        if (!carResponse.isActivatedApp()) {
             activeApp();
         }
     }
@@ -1259,7 +1265,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                                     .setOnAllowClick(DialogInterface::dismiss)
                                     .setOnDismissListener(dialog -> dialogActiveControl.show())
                                     .show();
-
                         }
                     }
                 });

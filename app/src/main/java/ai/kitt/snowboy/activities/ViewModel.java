@@ -5,17 +5,11 @@ import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 
-import com.google.gson.Gson;
-
-import ai.kitt.snowboy.api.ApiCall;
 import ai.kitt.snowboy.api.model.ActiveCode;
 import ai.kitt.snowboy.api.model.CarInfo;
 import ai.kitt.snowboy.api.model.CarResponse;
-import ai.kitt.snowboy.api.model.VTVResponse;
-import ai.kitt.snowboy.api.model.VtvFirebaseRequest;
-import ai.kitt.snowboy.api.model.VtvFirebaseResponse;
-import ai.kitt.snowboy.api.reepository.ActiveRepo;
-import ai.kitt.snowboy.api.reepository.CarRepo;
+import ai.kitt.snowboy.api.repository.ActiveRepo;
+import ai.kitt.snowboy.api.repository.CarRepo;
 import ai.kitt.snowboy.database.VNestDB;
 import ai.kitt.snowboy.entity.Message;
 import ai.kitt.snowboy.entity.Poi;
@@ -23,11 +17,7 @@ import ai.kitt.snowboy.entity.Poi;
 import java.util.List;
 
 //import kun.kt.vtv.VtvFetchLinkStream;
-import ai.kitt.snowboy.util.DialogActiveControl;
 import kun.kt.vtv.VtvFetchLinkStream;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class ViewModel extends androidx.lifecycle.ViewModel {
     public CarResponse carResponse;

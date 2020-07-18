@@ -44,19 +44,26 @@ public class TriggerOfflineService extends Service {
         if (isWakeUp) {
             intent.putExtra(KEY_START, WAKE_UP);
         }
-        context.startService(intent);
+        try {
+            context.startService(intent);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
     }
 
     public static void stopService(Context context) {
         Intent intent = new Intent(context, TriggerOfflineService.class);
-        context.stopService(intent);
+        try {
+            context.stopService(intent);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
         initAlexaDetect();
-
     }
 
     @SuppressLint("HandlerLeak")
@@ -67,7 +74,7 @@ public class TriggerOfflineService extends Service {
             MsgEnum message = MsgEnum.getMsgEnum(msg.what);
             switch (message) {
                 case MSG_ACTIVE:
-                    updateLog(" ============== Detected Offline==============");
+                    updateLog(" ============== Detected Offline ==============");
                     updateIfActive();
                     break;
                 case MSG_INFO:
@@ -138,10 +145,21 @@ public class TriggerOfflineService extends Service {
     }
 
     public void stopOfflineRecording() {
-        recordingThread.stopRecording();
-        updateLog(" ==============> Offline recording stopped ==============");
+        try {
+            recordingThread.stopRecording();
+            updateLog(" ==============> Offline recording stopped ==============");
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+
     }
 
-    public static final String TAG ="VnestService";
+    public static final String TAG = "VnestService";
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        recordingThread = null;
+        playbackThread = null;
+    }
 }

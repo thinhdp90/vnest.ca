@@ -1,4 +1,4 @@
-package ai.kitt.snowboy.api.reepository;
+package ai.kitt.snowboy.api.repository;
 
 import android.util.Log;
 

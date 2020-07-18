@@ -79,12 +79,12 @@ class SpeechRecognizerManager(
                 isListening = true
             }
         } catch (e: Exception) {
-            recreateVoicRecog()
+            recreateVoiceRecord()
         }
 
     }
 
-    fun recreateVoicRecog() {
+    private fun recreateVoiceRecord() {
         speechRecognizer.destroy()
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
         speechRecognizer.setRecognitionListener(speechListener)

@@ -13,6 +13,7 @@ public class TriggerBroadCast extends BroadcastReceiver {
     public final static String ACTION_TURN_MIC_ON = "turn on";
     public final static String ACTION_TURN_MIC_OFF = "turn off";
     public final static String ACTION_START_APP = "start_app";
+    private final static String TAG = "Trigger broadcast";
     private OnHandleTrigger onHandleTrigger;
     private Class<?> activity;
 
@@ -40,15 +41,14 @@ public class TriggerBroadCast extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        Log.e("Action","sdfsdfsdf"+action);
         assert action != null;
         if (action.equals(ACTION_TURN_MIC_ON)) {
-            Log.e("Action", "Turn on mic");
+            Log.e(TAG, "Turn on mic");
             onHandleTrigger.onActionTurnOn();
             return;
         }
         if (action.equals(ACTION_START_APP)) {
-            Log.e("Action", "Start app from broadcast");
+            Log.e(TAG, "Start app from broadcast");
             try {
 //                Intent startAppIntent = new Intent(context, activity);
 //                startAppIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -72,12 +72,12 @@ public class TriggerBroadCast extends BroadcastReceiver {
 //                dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 //                context.startActivity(dialogIntent);
             } catch (Exception e) {
-                Log.e("Error start app", e.getMessage(), e);
+                Log.e(TAG, e.getMessage(), e);
             }
             return;
         }
         if (action.equals(ACTION_TURN_MIC_OFF)) {
-            Log.e("Action", "Turn off mic");
+            Log.e(TAG, "Turn off mic");
             onHandleTrigger.onActionTurnOff();
         }
     }

@@ -1,8 +1,6 @@
 package ai.kitt.snowboy.feature.home;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +9,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,14 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import ai.kitt.snowboy.R;
 import ai.kitt.snowboy.activities.MainActivity;
 import ai.kitt.snowboy.activities.ViewModel;
-import ai.kitt.snowboy.api.model.ActiveCode;
-import ai.kitt.snowboy.api.model.ActiveResponse;
-import ai.kitt.snowboy.api.reepository.ActiveRepo;
-import ai.kitt.snowboy.database.sharepreference.VnestSharePreference;
 import ai.kitt.snowboy.entity.Message;
-import ai.kitt.snowboy.util.AppUtil;
-import ai.kitt.snowboy.util.DialogActiveControl;
-import ai.kitt.snowboy.util.DialogUtils;
 
 import java.util.Calendar;
 import java.util.Objects;
