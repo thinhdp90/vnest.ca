@@ -44,6 +44,7 @@ dependencies {
     def room_version = "2.2.5"
     def retrofitVersion = "2.8.2"
     def logginInterceptor = "4.7.1"
+    def material_version = '1.2.0-alpha06'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:1.1.0'
@@ -87,6 +88,7 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.10.0'
     implementation 'com.github.sachinvarma:Speech-Recognizer:0.0.1'
     implementation 'com.tbruyelle.rxpermissions:rxpermissions:0.7.0@aar'
+    implementation "com.google.android.material:material:$material_version"
 //    implementation 'com.google.api-client:google-api-client:1.30.9'
 //    implementation 'com.google.api-client:google-api-client-android:1.30.9' exclude module: 'httpclient'
 

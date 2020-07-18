@@ -1,5 +1,6 @@
 package ai.kitt.snowboy.util;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -17,7 +18,7 @@ import ai.kitt.snowboy.R;
 import ai.kitt.snowboy.database.sharepreference.VnestSharePreference;
 
 public class DialogActiveControl {
-    private Context context;
+    private Activity context;
     private View view;
     private AlertDialog alertDialog;
     private TextView btnAccept;
@@ -25,8 +26,7 @@ public class DialogActiveControl {
     private EditText editTextActiveCode;
     private OnActiveListener onActiveListener;
 
-
-    public DialogActiveControl(Context context, OnActiveListener onActiveListener) {
+    public DialogActiveControl(Activity context, OnActiveListener onActiveListener) {
         this.context = context;
         view = LayoutInflater.from(context).inflate(R.layout.dialog_active_code, null, false);
         initView(view);
@@ -41,18 +41,20 @@ public class DialogActiveControl {
     private void initView(View view) {
         editTextPhone = view.findViewById(R.id.editTextPhone);
         editTextActiveCode = view.findViewById(R.id.editTextActiveCode);
+        btnAccept = view.findViewById(R.id.acceptBtn);
     }
 
     private void initAction(View view) {
-        btnAccept = view.findViewById(R.id.acceptBtn);
         btnAccept.setOnClickListener(v -> {
-            if (checkInputNull(editTextPhone)) return;
+//            if (checkInputNull(editTextPhone)) return;
             if (checkInputNull(editTextActiveCode)) return;
             activeCode(editTextPhone.getText().toString(), editTextActiveCode.getText().toString());
         });
+        editTextActiveCode.requestFocus();
         editTextPhone.setOnEditorActionListener((v, actionId, event) -> {
             switch (actionId) {
                 case EditorInfo.IME_ACTION_DONE:
+                    KeyboardUtil.hideSoftKeyboard(context, v);
                     return btnAccept.performClick();
             }
             return false;
@@ -87,6 +89,7 @@ public class DialogActiveControl {
 
     public interface OnActiveListener {
         void onAccept(String phone, String activeCode);
+
         void onFail();
     }
 }

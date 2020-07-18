@@ -1,6 +1,7 @@
 package ai.kitt.snowboy.api;
 
 import ai.kitt.snowboy.api.model.ActiveCode;
+import ai.kitt.snowboy.api.model.ActiveResponse;
 import ai.kitt.snowboy.api.model.CarInfo;
 import ai.kitt.snowboy.api.model.CarResponse;
 
@@ -14,5 +15,5 @@ public interface API {
 
     //https://vnest.vn/
     @POST("search-api/activate")
-    Call<String> activeCode(@Body ActiveCode activeCode);
+    Call<ActiveResponse> activeCode(@Body ActiveCode activeCode);
 }

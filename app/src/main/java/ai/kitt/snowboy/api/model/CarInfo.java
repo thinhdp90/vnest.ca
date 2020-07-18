@@ -10,7 +10,8 @@ public class CarInfo {
         this.deviceId = deviceId;
     }
 
-    public CarInfo(String deviceId, String model, String id, String brand, String type, String user, String base, String sdk, String incremental, String board, String host, String versionCode, String fingerPrint, String versionName) {
+    public CarInfo(String deviceId, String model, String id, String brand, String type, String user,
+                   String base, String sdk, String incremental, String board, String host, String versionCode, String fingerPrint, String versionName, String imei) {
         this.deviceId = deviceId;
         this.model = model;
         this.id = id;
@@ -25,6 +26,7 @@ public class CarInfo {
         this.versionCode = versionCode;
         this.fingerPrint = fingerPrint;
         this.versionName = versionName;
+        this.imei = imei;
     }
 
     public String deviceId;
@@ -41,8 +43,9 @@ public class CarInfo {
     public String versionCode;
     public String fingerPrint;
     private String versionName;
+    private String imei;
 
-    public static CarInfo getDefault(String deviceId) {
+    public static CarInfo getDefault(String deviceId, String imei) {
         return new CarInfo(
                 deviceId,
                 Build.MODEL,
@@ -57,7 +60,8 @@ public class CarInfo {
                 Build.HOST,
                 BuildConfig.VERSION_CODE + "",
                 Build.FINGERPRINT,
-                BuildConfig.VERSION_NAME
+                BuildConfig.VERSION_NAME,
+                imei
         );
     }
 

@@ -13,4 +13,7 @@
     <string name="phone">Số điện thoại</string>
     <string name="active_code">Mã kích hoạt</string>
     <string name="accept">OK</string>
+    <string name="alert_ok_button_title">OK</string>
+    <string name="confirm_button_alert_title">Xác nhận</string>
+    <string name="active_code_fail">Kích hoạt code không thành công!\nMời nhập lại!</string>
 </resources>

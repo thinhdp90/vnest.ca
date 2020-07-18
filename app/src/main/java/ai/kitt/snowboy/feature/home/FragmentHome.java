@@ -1,5 +1,6 @@
 package ai.kitt.snowboy.feature.home;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -19,9 +20,11 @@ import ai.kitt.snowboy.R;
 import ai.kitt.snowboy.activities.MainActivity;
 import ai.kitt.snowboy.activities.ViewModel;
 import ai.kitt.snowboy.api.model.ActiveCode;
+import ai.kitt.snowboy.api.model.ActiveResponse;
 import ai.kitt.snowboy.api.reepository.ActiveRepo;
 import ai.kitt.snowboy.database.sharepreference.VnestSharePreference;
 import ai.kitt.snowboy.entity.Message;
+import ai.kitt.snowboy.util.AppUtil;
 import ai.kitt.snowboy.util.DialogActiveControl;
 import ai.kitt.snowboy.util.DialogUtils;
 
@@ -39,8 +42,7 @@ public class FragmentHome extends Fragment {
     private TextView btnBack;
     private TextView assistantText;
     private ViewModel viewModel;
-    private DialogActiveControl dialogActiveControl;
-    private AlertDialog progressDialog;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,56 +62,6 @@ public class FragmentHome extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        dialogActiveControl = new DialogActiveControl(requireContext(), new DialogActiveControl.OnActiveListener() {
-            @Override
-            public void onAccept(String phone, String activeCode) {
-                if (progressDialog == null) {
-                    progressDialog = DialogUtils.showProgressDialog(requireContext(), false);
-                } else {
-                    progressDialog.show();
-                    dialogActiveControl.dismiss();
-                }
-
-                viewModel.activeDevice(new ActiveCode(phone, activeCode), new ActiveRepo.ActiveListener() {
-                    @Override
-                    public void onSuccess(String activeCode) {
-                        if (progressDialog != null) {
-                            progressDialog.dismiss();
-                            dialogActiveControl.dismiss();
-                            String code = activeCode;
-                            if (code == null) {
-                                code = "";
-                            }
-                            VnestSharePreference.getInstance(requireContext()).saveActiveCode(code + "Vnest");
-                        }
-                    }
-
-                    @Override
-                    public void onError() {
-                        if (progressDialog != null) {
-                            progressDialog.dismiss();
-                            dialogActiveControl.show();
-                        }
-                    }
-                });
-            }
-
-//            @Override
-//            public void onSuccess(String activeCode) {
-//                dialogActiveControl.dismiss();
-//                VnestSharePreference.getInstance(requireContext()).saveActiveCode(activeCode);
-////                getMainActivity().startResultFragment();
-////                viewModel.getLiveDataStartRecord().postValue(true);
-//            }
-
-            @Override
-            public void onFail() {
-
-            }
-        });
-        if (!VnestSharePreference.getInstance(requireContext()).isHadActiveCode()) {
-            dialogActiveControl.show();
-        }
     }
 
     private void initView(View view) {
@@ -140,7 +92,6 @@ public class FragmentHome extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        dialogActiveControl.dismiss();
     }
 
     @Override

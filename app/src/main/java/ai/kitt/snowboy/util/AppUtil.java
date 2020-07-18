@@ -1,8 +1,11 @@
 package ai.kitt.snowboy.util;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.provider.Settings;
+import android.telephony.TelephonyManager;
 
 import ai.kitt.snowboy.entity.Poi;
 
@@ -62,6 +65,27 @@ public class AppUtil {
             intent.setPackage("com.google.android.youtube");
         }
         context.startActivity(intent);
+    }
+
+    public static String getImei(Activity activity) {
+        TelephonyManager telephonyManager = (TelephonyManager) activity.getSystemService(Context.TELEPHONY_SERVICE);
+        try {
+            String imei = telephonyManager.getDeviceId();
+            return imei;
+        } catch (Exception e) {
+
+        }
+        return null;
+    }
+
+    public static String getDeviceId(Activity activity) {
+        try {
+            return Settings.Secure.getString(activity.getContentResolver(),
+                    Settings.Secure.ANDROID_ID);
+        } catch (Exception e) {
+
+        }
+        return null;
     }
 }
 

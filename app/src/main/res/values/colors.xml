@@ -19,4 +19,7 @@
     <color name="soft_green">#72c472</color>
     <color name="water_blue">#109ddc</color>
     <color name="md_white_1000">#fff</color>>
+
+    <color name="white_transparent">#00FFFFFF</color>
+
 </resources>

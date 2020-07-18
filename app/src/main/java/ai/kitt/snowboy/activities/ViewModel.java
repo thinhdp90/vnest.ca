@@ -95,8 +95,8 @@ public class ViewModel extends androidx.lifecycle.ViewModel {
         }).start();
     }
 
-    public void sendCarInfo(String deviceId) {
-        carRepo.sendCarInfo(CarInfo.getDefault(deviceId), carResponse -> {
+    public void sendCarInfo(String deviceId, String imei) {
+        carRepo.sendCarInfo(CarInfo.getDefault(deviceId,imei), carResponse -> {
             this.carResponse = carResponse;
             liveDataUpdateResponse.postValue(carResponse);
         });

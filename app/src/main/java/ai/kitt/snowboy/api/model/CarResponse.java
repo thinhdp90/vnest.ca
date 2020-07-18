@@ -16,6 +16,7 @@ public class CarResponse {
     private String description;
     private String versionCode;
     private UpdateVersion updateversion;
+    private int activeStatus;
     private boolean notchangesessionid;
 
     public UpdateVersion getVersion() {
@@ -48,6 +49,34 @@ public class CarResponse {
 
     public void setVersionCode(String versionCode) {
         this.versionCode = versionCode;
+    }
+
+    public UpdateVersion getUpdateversion() {
+        return updateversion;
+    }
+
+    public void setUpdateversion(UpdateVersion updateversion) {
+        this.updateversion = updateversion;
+    }
+
+    public int getActiveStatus() {
+        return activeStatus;
+    }
+
+    public void setActiveStatus(int activeStatus) {
+        this.activeStatus = activeStatus;
+    }
+
+    public boolean isNotchangesessionid() {
+        return notchangesessionid;
+    }
+
+    public void setNotchangesessionid(boolean notchangesessionid) {
+        this.notchangesessionid = notchangesessionid;
+    }
+
+    public boolean checkActiveStatus() {
+        return getActiveStatus() > 0;
     }
 
     public static class UpdateVersion {

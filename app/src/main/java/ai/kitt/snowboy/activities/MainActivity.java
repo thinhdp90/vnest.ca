@@ -5,6 +5,7 @@ import ai.api.model.AIOutputContext;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
@@ -22,6 +23,7 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
@@ -39,6 +41,7 @@ import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -61,11 +64,15 @@ import com.kwabenaberko.openweathermaplib.constants.Lang;
 import com.kwabenaberko.openweathermaplib.constants.Units;
 import com.kwabenaberko.openweathermaplib.implementation.OpenWeatherMapHelper;
 import com.kwabenaberko.openweathermaplib.implementation.callbacks.CurrentWeatherCallback;
+import com.kwabenaberko.openweathermaplib.models.common.Main;
 import com.kwabenaberko.openweathermaplib.models.currentweather.CurrentWeather;
 
 import ai.kitt.snowboy.OnResultReady;
 import ai.kitt.snowboy.R;
 import ai.kitt.snowboy.SpeechRecognizerManager;
+import ai.kitt.snowboy.api.model.ActiveCode;
+import ai.kitt.snowboy.api.model.ActiveResponse;
+import ai.kitt.snowboy.api.reepository.ActiveRepo;
 import ai.kitt.snowboy.service.TriggerOfflineService;
 import ai.kitt.snowboy.adapters.DefaultAssistantAdapter;
 import ai.kitt.snowboy.adapters.ItemNavigationAdapter;
@@ -79,6 +86,8 @@ import ai.kitt.snowboy.entity.Youtube;
 import ai.kitt.snowboy.feature.home.AdapterHomeItemDefault;
 import ai.kitt.snowboy.feature.home.FragmentHome;
 import ai.kitt.snowboy.feature.result.FragmentResult;
+import ai.kitt.snowboy.util.ConfirmDialog;
+import ai.kitt.snowboy.util.DialogActiveControl;
 import ai.kitt.snowboy.util.DialogUtils;
 import ai.kitt.snowboy.util.AppUtil;
 import ai.kitt.snowboy.util.PhoneUtils;
@@ -195,7 +204,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.SET_ALARM,
-            Manifest.permission.READ_CONTACTS};
+            Manifest.permission.READ_CONTACTS,
+            Manifest.permission.READ_PHONE_STATE};
 
     private View bottomSheetLayout;
     private BottomSheetBehavior bottomSheetBehavior;
@@ -232,6 +242,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private TriggerBroadCast triggerBroadCast;
     private ProgressDialog downloadDialog;
     private long processTime = 0;
+    private DialogActiveControl dialogActiveControl;
+    private AlertDialog progressDialog;
 
 
     private SpeechRecognizerManager speechRecognizerManager;
@@ -301,10 +313,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         deviceId = Settings.Secure.getString(getContentResolver(),
                 Settings.Secure.ANDROID_ID);
         // Get phone's location
-        viewModel.sendCarInfo(deviceId);
-        viewModel.getLiveDataUpdateResponse().observe(this, carResponse -> {
-            updateApp(carResponse);
-        });
+        TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        String imei = telephonyManager.getDeviceId();
+
+        viewModel.sendCarInfo(deviceId, imei);
+        viewModel.getLiveDataUpdateResponse().observe(this, this::updateApp);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -1061,6 +1074,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         if (downloadDialog != null) {
             downloadDialog.dismiss();
         }
+        if (dialogActiveControl != null) {
+            dialogActiveControl.dismiss();
+        }
+
     }
 
     private void deleteMessage() {
@@ -1193,10 +1210,67 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         CarResponse.UpdateVersion updateVersion = carResponse.getVersion();
         boolean forceUpdate = updateVersion.getForced() == 1;
         boolean update = updateVersion.getUpdate() == 1;
+
         if (update) {
             UpdateChecker.checkForDialog(this, updateVersion.getUrl(), forceUpdate, updateVersion.getDescription());
+            return;
         }
+        if (!carResponse.checkActiveStatus()) {
+            activeApp();
+        }
+    }
 
+    public void activeApp() {
+        dialogActiveControl = new DialogActiveControl(this, new DialogActiveControl.OnActiveListener() {
+            @Override
+            public void onAccept(String phone, String activeCode) {
+                if (progressDialog == null) {
+                    progressDialog = DialogUtils.showProgressDialog(MainActivity.this, false);
+                } else {
+                    progressDialog.show();
+                    dialogActiveControl.dismiss();
+                }
+
+                viewModel.activeDevice(new ActiveCode(phone, activeCode, AppUtil.getImei(MainActivity.this), AppUtil.getDeviceId(MainActivity.this)), new ActiveRepo.ActiveListener() {
+                    @Override
+                    public void onSuccess(ActiveResponse activeCode) {
+                        if (progressDialog != null) {
+                            progressDialog.dismiss();
+                            String code = activeCode.getCode();
+                            if (code == null) {
+                                code = "";
+                            }
+                            if (code.toLowerCase().endsWith("0")) {
+                                onError();
+                            } else {
+                                VnestSharePreference.getInstance(MainActivity.this).saveActiveCode(code + "Vnest");
+                                dialogActiveControl.dismiss();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onError() {
+                        if (progressDialog != null) {
+                            dialogActiveControl.dismiss();
+                            progressDialog.dismiss();
+                            new ConfirmDialog.Builder(MainActivity.this, true)
+                                    .message(getString(R.string.active_code_fail))
+                                    .setOnAllowClick(DialogInterface::dismiss)
+                                    .setOnDismissListener(dialog -> dialogActiveControl.show())
+                                    .show();
+
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onFail() {
+
+            }
+        });
+        dialogActiveControl.show();
     }
 
     private Boolean calculateResetContext(long previousProcessTime, long currentProcessTime) {
@@ -1236,4 +1310,5 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     protected void onUserLeaveHint() {
         super.onUserLeaveHint();
     }
+
 }
