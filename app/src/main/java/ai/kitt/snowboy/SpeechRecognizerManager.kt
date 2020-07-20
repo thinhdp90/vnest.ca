@@ -1,5 +1,6 @@
 package ai.kitt.snowboy
 
+import ai.kitt.snowboy.service.TriggerOfflineService
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
@@ -13,15 +14,16 @@ import java.util.*
 class SpeechRecognizerManager(
         val context: Context,
         private var onResultReady: OnResultReady,
-        var speechRecognizer: SpeechRecognizer
+        var speechRecognizer: SpeechRecognizer,
+        var onRecreateVoiceRecord: OnRecreateVoiceRecord
 ) {
     companion object {
         var INSTANCE: SpeechRecognizerManager? = null
 
         @JvmStatic
-        fun getInstance(context: Context, onResultReady: OnResultReady, speechRecognizer: SpeechRecognizer): SpeechRecognizerManager {
+        fun getInstance(context: Context, onResultReady: OnResultReady, speechRecognizer: SpeechRecognizer, onRecreateVoiceRecord: OnRecreateVoiceRecord): SpeechRecognizerManager {
 //            if (INSTANCE == null) {
-                INSTANCE = SpeechRecognizerManager(context, onResultReady, speechRecognizer)
+                INSTANCE = SpeechRecognizerManager(context, onResultReady, speechRecognizer,onRecreateVoiceRecord)
 //            }
             return INSTANCE!!
         }
@@ -37,8 +39,10 @@ class SpeechRecognizerManager(
     val speechListener = SpeechRecognitionListener(
             onResultReady, {
         if (isListening) {
-            restartListening()
+            recreateVoiceRecord()
+            Log.e("Restart listening","OK")
         } else {
+            Log.e("Stop listening","OK")
             muteVolume(false)
         }
     }, {
@@ -59,28 +63,28 @@ class SpeechRecognizerManager(
                 timeOut
         )
         speechRecognizer.setRecognitionListener(speechListener)
+//        TriggerOfflineService.startService(App.get(),false)
 
     }
 
     fun restartListening() {
         muteVolume(true)
         speechRecognizer.stopListening()
-        speechRecognizer.cancel()
         speechRecognizer.startListening(speechIntent)
         isListening = true
     }
 
     fun startListening() {
-        try {
-            if (!isListening) {
-                speechRecognizer.stopListening()
-                speechRecognizer.cancel()
-                speechRecognizer.startListening(speechIntent)
-                isListening = true
+        TriggerOfflineService.stopService(App.get())
+            try {
+                if (!isListening) {
+                    speechRecognizer.stopListening()
+                    speechRecognizer.startListening(speechIntent)
+                    isListening = true
+                }
+            } catch (e: Exception) {
+                recreateVoiceRecord()
             }
-        } catch (e: Exception) {
-            recreateVoiceRecord()
-        }
 
     }
 
@@ -88,16 +92,25 @@ class SpeechRecognizerManager(
         speechRecognizer.destroy()
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
         speechRecognizer.setRecognitionListener(speechListener)
+        speechRecognizer.startListening(speechIntent)
+        onRecreateVoiceRecord.onRecreate()
     }
 
     fun stopListening() {
         Log.e(TAG, "=============Stop listening=============")
         speechRecognizer.let {
+            speechRecognizer.destroy()
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
+            speechRecognizer.setRecognitionListener(speechListener)
+            onRecreateVoiceRecord.onRecreate()
             it.stopListening()
             it.cancel()
         }
         isListening = false
         muteVolume(false)
+        TriggerOfflineService.startService(App.get(),false)
+//        TriggerOfflineService.stopService(App.get())
+//        TriggerOfflineService.startService(App.get(),false)
     }
 
     fun destroy() {
@@ -130,6 +143,9 @@ class SpeechRecognizerManager(
 //                Log.e("Mute volume", e.javaClass.name)
 //            }
         }
+    }
+    interface OnRecreateVoiceRecord {
+        fun onRecreate()
     }
 
 }

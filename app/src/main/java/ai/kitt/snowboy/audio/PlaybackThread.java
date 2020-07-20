@@ -23,6 +23,13 @@ public class PlaybackThread {
 
     public PlaybackThread() {
     }
+    private static PlaybackThread INSTANCE;
+    public static PlaybackThread getInstance() {
+        if(INSTANCE == null) {
+            INSTANCE = new PlaybackThread();
+        }
+        return INSTANCE;
+    }
 
     private Thread thread;
     private boolean shouldContinue;

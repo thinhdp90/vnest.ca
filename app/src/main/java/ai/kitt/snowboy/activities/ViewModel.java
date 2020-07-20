@@ -14,13 +14,16 @@ import ai.kitt.snowboy.database.VNestDB;
 import ai.kitt.snowboy.entity.Message;
 import ai.kitt.snowboy.entity.Poi;
 
+import java.net.UnknownHostException;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 //import kun.kt.vtv.VtvFetchLinkStream;
 import kun.kt.vtv.VtvFetchLinkStream;
+import okio.Timeout;
 
 public class ViewModel extends androidx.lifecycle.ViewModel {
-    public CarResponse carResponse;
+    public CarResponse carInfoResponse;
     private Context context;
     private CarRepo carRepo = new CarRepo();
     private ActiveRepo activeRepo = new ActiveRepo();
@@ -31,6 +34,7 @@ public class ViewModel extends androidx.lifecycle.ViewModel {
     private MutableLiveData<List<Poi>> liveListPoi = new MutableLiveData<>();
     private MutableLiveData<List<Message>> listMessLiveData = new MutableLiveData<>();
     private MutableLiveData<String> liveDataOpenVTV = new MutableLiveData<>();
+    private MutableLiveData<Boolean> liveDataRebindRecognitionsView = new MutableLiveData<>();
 
 
     public ViewModel(Context context) {
@@ -47,6 +51,10 @@ public class ViewModel extends androidx.lifecycle.ViewModel {
 
     public MutableLiveData<String> getLiveDataOpenVTV() {
         return liveDataOpenVTV;
+    }
+
+    public MutableLiveData<Boolean> getLiveDataRebindRecognitionsView() {
+        return liveDataRebindRecognitionsView;
     }
 
     public MutableLiveData<Boolean> getLiveDataStartRecord() {
@@ -86,9 +94,19 @@ public class ViewModel extends androidx.lifecycle.ViewModel {
     }
 
     public void sendCarInfo(String deviceId, String imei) {
-        carRepo.sendCarInfo(CarInfo.getDefault(deviceId,imei), carResponse -> {
-            this.carResponse = carResponse;
-            liveDataUpdateResponse.postValue(carResponse);
+        carRepo.sendCarInfo(CarInfo.getDefault(deviceId, imei), new CarRepo.OnResponseListener() {
+            @Override
+            public void onResponse(CarResponse carResponse) {
+                carInfoResponse = carResponse;
+                liveDataUpdateResponse.postValue(carResponse);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                if (throwable instanceof UnknownHostException || throwable instanceof TimeoutException) {
+                    liveDataUpdateResponse.postValue(null);
+                }
+            }
         });
     }
 

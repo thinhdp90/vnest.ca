@@ -53,6 +53,13 @@ public class RecordingThread {
         }
     }
 
+    private static RecordingThread INSTANCE;
+    public static RecordingThread getInstance(Handler handler, AudioDataReceivedListener listener) {
+        if(INSTANCE == null) {
+            INSTANCE = new RecordingThread(handler, listener);
+        }
+        return INSTANCE;
+    }
     private void sendMessage(MsgEnum what, Object obj) {
         if (null != handler) {
             Message msg = handler.obtainMessage(what.ordinal(), obj);

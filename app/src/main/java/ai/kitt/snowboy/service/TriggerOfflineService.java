@@ -17,17 +17,19 @@ import androidx.annotation.Nullable;
 
 import com.kwabenaberko.openweathermaplib.models.common.Main;
 
+import ai.kitt.snowboy.App;
 import ai.kitt.snowboy.AppResCopy;
 import ai.kitt.snowboy.MsgEnum;
 import ai.kitt.snowboy.activities.MainActivity;
 import ai.kitt.snowboy.activities.splash.SplashActivity;
+import ai.kitt.snowboy.audio.AudioDataReceivedListener;
 import ai.kitt.snowboy.audio.AudioDataSaver;
 import ai.kitt.snowboy.audio.PlaybackThread;
 import ai.kitt.snowboy.audio.RecordingThread;
 import ai.kitt.snowboy.util.AppUtil;
 
 public class TriggerOfflineService extends Service {
-    private int keyStartService;
+    public static int keyStartService;
     private RecordingThread recordingThread;
     private PlaybackThread playbackThread;
 
@@ -38,6 +40,8 @@ public class TriggerOfflineService extends Service {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
     };
+
+
 
     public static void startService(Context context, boolean isWakeUp) {
         Intent intent = new Intent(context, TriggerOfflineService.class);
@@ -88,7 +92,7 @@ public class TriggerOfflineService extends Service {
                     break;
                 case MSG_ERROR:
                     startOfflineRecording();
-                    updateLog(" ============== " + msg.toString() + " Offline==============");
+                    updateLog(" ============== Error " + msg.toString() + " Offline==============");
                     break;
                 default:
                     super.handleMessage(msg);
@@ -112,8 +116,8 @@ public class TriggerOfflineService extends Service {
 
     private void initAlexaDetect() {
         AppResCopy.copyResFromAssetsToSD(this);
-        recordingThread = new RecordingThread(handlerHotWordDetect, new AudioDataSaver());
-        playbackThread = new PlaybackThread();
+        recordingThread = RecordingThread.getInstance(handlerHotWordDetect, AudioDataSaver.getInstance());
+        playbackThread = PlaybackThread.getInstance();
     }
 
 
@@ -122,6 +126,7 @@ public class TriggerOfflineService extends Service {
     }
 
     public void startOfflineRecording() {
+
         if (recordingThread != null) {
             recordingThread.startRecording();
         }
@@ -159,6 +164,7 @@ public class TriggerOfflineService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        stopOfflineRecording();
         recordingThread = null;
         playbackThread = null;
     }

@@ -36,9 +36,12 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
-import  ai.kitt.snowboy.R;
+
+import ai.kitt.snowboy.App;
+import ai.kitt.snowboy.R;
 import ai.kitt.snowboy.activities.MainActivity;
 import ai.kitt.snowboy.activities.ViewModel;
+import ai.kitt.snowboy.service.TriggerOfflineService;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -69,10 +72,23 @@ public class FragmentResult extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_result, container, false);
-        initView(view);
-        intAction(view);
+
         return view;
     }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        initView(view);
+        intAction(view);
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+    }
+
 
     @Override
     public void onStart() {
@@ -150,6 +166,13 @@ public class FragmentResult extends Fragment {
         mediaSourceFactory = new DefaultDataSourceFactory(requireContext(), Util.getUserAgent(requireContext(), "vnest"));
 
         viewModel.getLiveDataOpenVTV().observe(getViewLifecycleOwner(), this::playVideo);
+        viewModel.getLiveDataRebindRecognitionsView().observe(getViewLifecycleOwner(), aBoolean -> {
+            if(aBoolean == null) return;
+            if(aBoolean) {
+              setUpRecognitionsUi();
+            }
+            viewModel.getLiveDataRebindRecognitionsView().postValue(null);
+        });
     }
 
     private void setUpRecognitionsUi() {
@@ -184,6 +207,7 @@ public class FragmentResult extends Fragment {
 
     public void startRecognition() {
         Log.d(LOG_TAG, "start listener....");
+        TriggerOfflineService.stopService(requireContext());
         isStartingRecognitionProgressView = true;
         btnVoice.setVisibility(View.GONE);
         setMarginListResult(120);

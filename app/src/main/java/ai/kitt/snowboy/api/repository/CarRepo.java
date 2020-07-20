@@ -13,7 +13,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class CarRepo {
-    public void sendCarInfo(CarInfo carInfo,OnResponseListener onResponseListener) {
+    public void sendCarInfo(CarInfo carInfo, OnResponseListener onResponseListener) {
         ApiCall.getInstance().getApi().carInfo(carInfo).enqueue(new Callback<CarResponse>() {
             @Override
             public void onResponse(Call<CarResponse> call, Response<CarResponse> response) {
@@ -24,11 +24,14 @@ public class CarRepo {
             @Override
             public void onFailure(Call<CarResponse> call, Throwable t) {
                 Log.e("Error", t.getMessage(), t);
+                onResponseListener.onError(t);
             }
         });
     }
 
     public interface OnResponseListener {
         void onResponse(CarResponse carResponse);
+
+        void onError(Throwable throwable);
     }
 }

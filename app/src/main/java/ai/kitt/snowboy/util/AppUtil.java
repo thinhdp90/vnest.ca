@@ -3,9 +3,12 @@ package ai.kitt.snowboy.util;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import ai.kitt.snowboy.entity.Poi;
 
@@ -73,9 +76,9 @@ public class AppUtil {
             String imei = telephonyManager.getDeviceId();
             return imei;
         } catch (Exception e) {
-
+            Log.e("Error", e.getMessage(), e);
         }
-        return null;
+        return "";
     }
 
     public static String getDeviceId(Activity activity) {
@@ -83,9 +86,21 @@ public class AppUtil {
             return Settings.Secure.getString(activity.getContentResolver(),
                     Settings.Secure.ANDROID_ID);
         } catch (Exception e) {
-
+            Log.e("Error", e.getMessage(), e);
         }
-        return null;
+        return "";
+    }
+
+    public static boolean checkInternetConnection(Context context) {
+        boolean connected = false;
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
+                connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED) {
+            //we are connected to a network
+            connected = true;
+        } else
+            connected = false;
+        return connected;
     }
 }
 

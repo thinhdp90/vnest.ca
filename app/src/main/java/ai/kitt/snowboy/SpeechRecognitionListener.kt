@@ -1,5 +1,6 @@
 package ai.kitt.snowboy
 
+import ai.kitt.snowboy.service.TriggerOfflineService
 import android.os.Bundle
 import android.speech.SpeechRecognizer
 import android.util.Log
@@ -13,6 +14,7 @@ class SpeechRecognitionListener(
 ) : RecognitionListenerAdapter() {
 
     override fun onReadyForSpeech(params: Bundle?) {
+//        TriggerOfflineService.stopService(App.get())
     }
 
 

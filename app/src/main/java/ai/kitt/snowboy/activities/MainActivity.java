@@ -41,7 +41,6 @@ import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -66,13 +65,13 @@ import com.kwabenaberko.openweathermaplib.implementation.OpenWeatherMapHelper;
 import com.kwabenaberko.openweathermaplib.implementation.callbacks.CurrentWeatherCallback;
 import com.kwabenaberko.openweathermaplib.models.currentweather.CurrentWeather;
 
+import ai.kitt.snowboy.App;
 import ai.kitt.snowboy.OnResultReady;
 import ai.kitt.snowboy.R;
 import ai.kitt.snowboy.SpeechRecognizerManager;
 import ai.kitt.snowboy.api.model.ActiveCode;
 import ai.kitt.snowboy.api.model.ActiveResponse;
 import ai.kitt.snowboy.api.repository.ActiveRepo;
-import ai.kitt.snowboy.service.TriggerOfflineService;
 import ai.kitt.snowboy.adapters.DefaultAssistantAdapter;
 import ai.kitt.snowboy.adapters.ItemNavigationAdapter;
 import ai.kitt.snowboy.api.model.CarResponse;
@@ -274,7 +273,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     private void initIfPermissionGranted() {
-
         init();
         initAction();
         mSpeechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -284,7 +282,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 Locale.getDefault());
         mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 20000);
         mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 20000);
-
 
     }
 
@@ -331,10 +328,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         deviceId = Settings.Secure.getString(getContentResolver(),
                 Settings.Secure.ANDROID_ID);
         // Get phone's location
-        TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        String imei = telephonyManager.getDeviceId();
-        if (callDeviceInfoTimes < 1) {
-            viewModel.sendCarInfo(deviceId, imei);
+        if (callDeviceInfoTimes < 1 || !App.isActivated) {
+            viewModel.sendCarInfo(deviceId, AppUtil.getImei(this));
         }
     }
 
@@ -453,6 +448,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
+
     private void initAction() {
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
         speechRecognizerManager = SpeechRecognizerManager.getInstance(this, new OnResultReady() {
@@ -475,7 +471,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             public void onStreamResult(@NotNull ArrayList<String> partialResults) {
 
             }
-        }, speechRecognizer);
+        }, speechRecognizer, () -> {
+            viewModel.getLiveDataRebindRecognitionsView().postValue(true);
+        });
         if (mCollapseView != null) {
             mCollapseView.setOnClickListener(view -> {
                 if (mDrawerLayout.isDrawerOpen(mDrawer)) {
@@ -1006,7 +1004,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
                 @Override
                 public void onRetry() {
-                    updateApp(viewModel.carResponse);
+                    updateApp(viewModel.carInfoResponse);
                 }
             });
         }
@@ -1030,10 +1028,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 }
             }, MainActivity.class);
         }
-        if(checkPermission()) {
-            TriggerOfflineService.stopService(this);
-            startResultFragment();
-            viewModel.getLiveDataStartRecord().postValue(true);
+        if (checkPermission()) {
+//            TriggerOfflineService.stopService(this);
+            if (AppUtil.checkInternetConnection(this)) {
+                startResultFragment();
+                viewModel.getLiveDataStartRecord().postValue(true);
+            } else {
+            }
+
         }
 
 
@@ -1058,7 +1060,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 speechRecognizer.stopListening();
             }
             //Start service
-            TriggerOfflineService.startService(this, true);
+//            TriggerOfflineService.startService(this, true);
 
         }
 
@@ -1212,6 +1214,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     public void updateApp(CarResponse carResponse) {
+        if (carResponse == null) {
+            new ConfirmDialog.Builder(this, true)
+//                    .title(getString(R.string.no_internet_connection_title))
+                    .setOnDismissListener(dialog -> {
+                        sendCarInfo();
+                    })
+                    .message(getString(R.string.no_internet_connection))
+                    .show();
+
+//            activeApp();
+            return;
+        }
         callDeviceInfoTimes++;
         CarResponse.UpdateVersion updateVersion = carResponse.getVersion();
         boolean forceUpdate = updateVersion.getForced() == 1;
@@ -1250,6 +1264,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                                 onError();
                             } else {
                                 VnestSharePreference.getInstance(MainActivity.this).saveActiveCode(code + "Vnest");
+                                App.isActivated = true;
                                 dialogActiveControl.dismiss();
                             }
                         }

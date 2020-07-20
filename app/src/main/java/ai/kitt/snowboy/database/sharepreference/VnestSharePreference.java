@@ -9,6 +9,7 @@ public class VnestSharePreference {
     private static VnestSharePreference sharePreference;
     private final static String SHARE_PREF_NAME = "Vnest";
     private final static String ACTIVE_NAME = "Acitve_code";
+    private static final String WAS_ACTIVE_CODE = "extra_was_active_code";
     private SharedPreferences sharedPreferences;
     private Context context;
 
@@ -36,5 +37,16 @@ public class VnestSharePreference {
 
     public String getActiveCode() {
         return sharedPreferences.getString(ACTIVE_NAME, null);
+    }
+
+    public void saveActiveCode(@NonNull boolean wasActiveCode) {
+        sharedPreferences.edit()
+                .putBoolean(WAS_ACTIVE_CODE, wasActiveCode)
+                .apply();
+
+    }
+
+    public boolean wasActiveCode() {
+        return sharedPreferences.getBoolean(WAS_ACTIVE_CODE, false);
     }
 }

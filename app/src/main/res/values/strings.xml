@@ -16,4 +16,5 @@
     <string name="alert_ok_button_title">OK</string>
     <string name="confirm_button_alert_title">Xác nhận</string>
     <string name="active_code_fail">Kích hoạt code không thành công!\nMời nhập lại!</string>
+    <string name="no_internet_connection">Kiểm tra kết nối mạng và thử lại!</string>
 </resources>

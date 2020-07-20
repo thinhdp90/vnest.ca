@@ -1,19 +1,28 @@
 package ai.kitt.snowboy;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 
+import com.kwabenaberko.openweathermaplib.models.common.Main;
+
+import ai.kitt.snowboy.activities.MainActivity;
+import ai.kitt.snowboy.service.TriggerOfflineService;
 import kun.kt.opencam.ipc.ITransitService;
 import kun.kt.opencam.air.*;
 
-public class App extends Application {
+public class App extends Application implements Application.ActivityLifecycleCallbacks {
     public static final String CAM_PACKAGE_NAME = "com.syu.camera360";
     public static final String AIR_PACKAGE_NAME = "com.tpms3";
-
+    public static boolean isActivated = false;
+    private int activityReferences = 0;
+    public boolean isInBackground = false;
 
     private static App INSTANCE;
 
@@ -25,6 +34,11 @@ public class App extends Application {
         INSTANCE = this;
     }
 
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        registerActivityLifecycleCallbacks(this);
+    }
 
     public static ITransitService ipcService;
     private static ServiceConnection serviceConnection = new ServiceConnection() {
@@ -68,5 +82,46 @@ public class App extends Application {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    @Override
+    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+
+    }
+
+    @Override
+    public void onActivityStarted(Activity activity) {
+    }
+
+    @Override
+    public void onActivityResumed(Activity activity) {
+        TriggerOfflineService.stopService(this);
+        isInBackground = false;
+    }
+
+    @Override
+    public void onActivityPaused(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivityStopped(Activity activity) {
+        Log.e("Activity", "Stoped" + activity.getLocalClassName());
+        if (activity instanceof MainActivity) {
+            isInBackground = true;
+            TriggerOfflineService.stopService(this);
+            TriggerOfflineService.startService(this, true);
+            TriggerOfflineService.keyStartService = TriggerOfflineService.WAKE_UP;
+        }
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+
+    }
+
+    @Override
+    public void onActivityDestroyed(Activity activity) {
+
     }
 }
