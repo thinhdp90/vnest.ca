@@ -2,6 +2,7 @@ package ai.kitt.snowboy.feature.result;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -116,7 +117,9 @@ public class FragmentResult extends Fragment {
             if (isStartingRecognitionProgressView) {
                 finishRecognition();
             } else {
-                startRecognition();
+                if(App.isActivated) {
+                    startRecognition();
+                }
             }
         });
         btnClosePlayerView.setOnClickListener(v -> {
@@ -157,7 +160,9 @@ public class FragmentResult extends Fragment {
         viewModel.getLiveDataStartRecord().observe(getViewLifecycleOwner(), aBoolean -> {
             if (aBoolean == null) return;
             if (aBoolean) {
-                startRecognition();
+                if(App.isActivated) {
+                    startRecognition();
+                }
             } else {
                 finishRecognition();
             }
@@ -202,6 +207,7 @@ public class FragmentResult extends Fragment {
         recognitionProgressView.setIdleStateAmplitudeInDp(8); // bien do dao dong cua cham tron
         recognitionProgressView.setRotationRadiusInDp(0); // kich thuoc vong quay cua cham tron
         recognitionProgressView.play();
+        Log.e("sdfsddddddddddd", SpeechRecognizer.isRecognitionAvailable(requireContext()) +"" );
 
     }
 

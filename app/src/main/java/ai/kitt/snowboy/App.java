@@ -20,6 +20,7 @@ import kun.kt.opencam.air.*;
 public class App extends Application implements Application.ActivityLifecycleCallbacks {
     public static final String CAM_PACKAGE_NAME = "com.syu.camera360";
     public static final String AIR_PACKAGE_NAME = "com.tpms3";
+//    public static boolean isActivated = false;
     public static boolean isActivated = false;
     private int activityReferences = 0;
     public boolean isInBackground = false;

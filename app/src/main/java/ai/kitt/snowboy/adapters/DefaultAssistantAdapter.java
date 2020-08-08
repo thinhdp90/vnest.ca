@@ -26,8 +26,8 @@ public class DefaultAssistantAdapter extends RecyclerView.Adapter<RecyclerView.V
     }
 
     public void setDefaultList() {
-        Pair<Integer, String>[] defItems = new Pair[]{new Pair<>(R.drawable.ic_ytb, "Youtube Assistant"),
-                new Pair<>(R.drawable.ic_nav, "Navigation Assistant"),
+        Pair<Integer, String>[] defItems = new Pair[]{new Pair<>(R.drawable.ic_ytb, "Youtube"),
+                new Pair<>(R.drawable.ic_nav, "Maps"),
                 new Pair<>(R.drawable.ic_fuel, "Fuel History"),
                 new Pair<>(R.drawable.ic_mtn, "Maintain Schedule"),
                 new Pair<>(R.drawable.ic_add, "Add more")
@@ -64,12 +64,7 @@ public class DefaultAssistantAdapter extends RecyclerView.Adapter<RecyclerView.V
         public void onBind(final Pair<Integer, String> item, final OnItemClickListener onItemClick) {
             itemName.setText(item.second);
             itemIcon.setImageDrawable(itemView.getContext().getDrawable(item.first));
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onItemClick.onClick(item.second, getAdapterPosition());
-                }
-            });
+            itemView.setOnClickListener(v -> onItemClick.onClick(item.second, getAdapterPosition()));
         }
     }
 

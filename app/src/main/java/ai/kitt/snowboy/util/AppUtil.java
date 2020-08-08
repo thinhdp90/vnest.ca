@@ -10,13 +10,19 @@ import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import ai.kitt.snowboy.database.sharepreference.VnestSharePreference;
 import ai.kitt.snowboy.entity.Poi;
 
 public class AppUtil {
+    public static final String MAPS_NATIVEL_APP_ID = "com.navitel";
+    public static final String MAPS_GOOGLE_MAP_APP_ID = "com.google.android.apps.maps";
+    public static final String MAPS_VIET_MAP_APP_ID = "com.google.android.apps.maps";
+
     public static void navigationOtPointByName(Double latitude, Double longitude, Context context) {
         Uri intentUri = Uri.parse("google.navigation:ll" + latitude + "," + longitude);
         Intent routeIntent = new Intent(Intent.ACTION_VIEW, intentUri);
-        routeIntent.setPackage("com.navitel");
+        String packageName = VnestSharePreference.getInstance(context).getMapAppId();
+        routeIntent.setPackage(packageName);
         if (routeIntent.resolveActivity(context.getPackageManager()) == null) {
             // Navitel is not installed, open the page in the market
             intentUri = Uri.parse("google.navigation:q=" + latitude + "," + longitude);
@@ -34,7 +40,8 @@ public class AppUtil {
     public static void navigationToLocation(String location, Context context) {
         Uri gmmIntentUri = Uri.parse("google.navigation:ll=" + location);
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-        mapIntent.setPackage("com.navitel");
+        String packageName = VnestSharePreference.getInstance(context).getMapAppId();
+        mapIntent.setPackage(packageName);
         if (mapIntent.resolveActivity(context.getPackageManager()) == null) {
             gmmIntentUri = Uri.parse("google.navigation:q=" + location);
             mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
@@ -50,7 +57,8 @@ public class AppUtil {
     public static void displayLocationToMap(String location, Context context) {
         Uri intentUri = Uri.parse("geo:0,0?q=" + location);
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, intentUri);
-        mapIntent.setPackage("com.navitel");
+        String packageName = VnestSharePreference.getInstance(context).getMapAppId();
+        mapIntent.setPackage(packageName);
         if (mapIntent.resolveActivity(context.getPackageManager()) == null) {
             mapIntent = new Intent(Intent.ACTION_VIEW, intentUri);
             mapIntent.setPackage("com.google.android.apps.maps");

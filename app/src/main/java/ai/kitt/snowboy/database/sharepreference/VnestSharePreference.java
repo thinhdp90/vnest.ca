@@ -5,9 +5,12 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 
+import ai.kitt.snowboy.util.AppUtil;
+
 public class VnestSharePreference {
     private static VnestSharePreference sharePreference;
     private final static String SHARE_PREF_NAME = "Vnest";
+    private final static String MAP_APP_ID = "Map_app_id";
     private final static String ACTIVE_NAME = "Acitve_code";
     private static final String WAS_ACTIVE_CODE = "extra_was_active_code";
     private SharedPreferences sharedPreferences;
@@ -48,5 +51,15 @@ public class VnestSharePreference {
 
     public boolean wasActiveCode() {
         return sharedPreferences.getBoolean(WAS_ACTIVE_CODE, false);
+    }
+
+    public String getMapAppId() {
+        return sharedPreferences.getString(MAP_APP_ID, AppUtil.MAPS_GOOGLE_MAP_APP_ID);
+    }
+
+    public void saveMapAppId(String appId) {
+        sharedPreferences.edit()
+                .putString(MAP_APP_ID, appId)
+                .apply();
     }
 }

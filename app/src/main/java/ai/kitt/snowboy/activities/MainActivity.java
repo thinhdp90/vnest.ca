@@ -26,6 +26,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.location.Location;
 import android.location.LocationListener;
@@ -42,6 +43,7 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -84,6 +86,7 @@ import ai.kitt.snowboy.entity.Youtube;
 import ai.kitt.snowboy.feature.home.AdapterHomeItemDefault;
 import ai.kitt.snowboy.feature.home.FragmentHome;
 import ai.kitt.snowboy.feature.result.FragmentResult;
+import ai.kitt.snowboy.feature.settings.FragmentSettings;
 import ai.kitt.snowboy.util.ConfirmDialog;
 import ai.kitt.snowboy.util.DialogActiveControl;
 import ai.kitt.snowboy.util.DialogUtils;
@@ -264,6 +267,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
         viewModel = new ViewModelProvider(this, new ViewModelFactory(this)).get(ViewModel.class);
+        Log.e("Screeen size", "" + getWindowManager().getDefaultDisplay().getWidth() + " " + getWindowManager().getDefaultDisplay().getHeight());
+        Point point = new Point();
+        Display screenSize = getWindowManager().getDefaultDisplay();
+        screenSize.getSize(point);
+        Log.e("Screeen size", "" + getResources().getDisplayMetrics().xdpi + " " + getResources().getDisplayMetrics().ydpi + " " + getResources().getDisplayMetrics().scaledDensity);
+
+
         if (checkPermission()) {
             initIfPermissionGranted();
         } else {
@@ -365,7 +375,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             textSpeech = KEY_GASOLINE_HISTORY;
                             break;
                         case 3:
-                            textSpeech = KEY_MAINTAIN_SCHEDULE;
+                            mDrawerLayout.closeDrawers();
+                            getSupportFragmentManager().beginTransaction()
+                                    .add(R.id.fragment_container, new FragmentSettings())
+                                    .addToBackStack("1")
+                                    .commit();
                             break;
                         default:
                             break;
@@ -449,8 +463,22 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
 
+    public void startHomeFragment() {
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentHome.class.getName());
+        if (fragment == null) {
+            Log.e(LOG_TAG, "Start result framgnet");
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(R.id.fragment_container, new FragmentHome(), FragmentHome.class.getName())
+                    .addToBackStack(MainActivity.class.getName())
+                    .commit();
+        }
+    }
+
+
     private void initAction() {
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+
         speechRecognizerManager = SpeechRecognizerManager.getInstance(this, new OnResultReady() {
             @Override
             public void onResults(@NotNull ArrayList<String> results) {
@@ -471,9 +499,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             public void onStreamResult(@NotNull ArrayList<String> partialResults) {
 
             }
-        }, speechRecognizer, () -> {
-            viewModel.getLiveDataRebindRecognitionsView().postValue(true);
-        });
+        }, speechRecognizer, () -> viewModel.getLiveDataRebindRecognitionsView().postValue(true));
+
         if (mCollapseView != null) {
             mCollapseView.setOnClickListener(view -> {
                 if (mDrawerLayout.isDrawerOpen(mDrawer)) {
@@ -970,9 +997,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.delete) {
-            deleteMessage();
-            return true;
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+            case R.id.delete:
+                deleteMessage();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -1013,8 +1044,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             triggerBroadCast = TriggerBroadCast.initBroadCast(this, new TriggerBroadCast.OnHandleTrigger() {
                 @Override
                 public void onActionTurnOn() {
-                    startResultFragment();
-                    viewModel.getLiveDataStartRecord().postValue(true);
+                    if (App.isActivated) {
+                        startResultFragment();
+                        viewModel.getLiveDataStartRecord().postValue(true);
+                    }
                 }
 
                 @Override
@@ -1030,10 +1063,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
         if (checkPermission()) {
 //            TriggerOfflineService.stopService(this);
-            if (AppUtil.checkInternetConnection(this)) {
+            if (AppUtil.checkInternetConnection(this) && App.isActivated) {
                 startResultFragment();
                 viewModel.getLiveDataStartRecord().postValue(true);
             } else {
+                startHomeFragment();
             }
 
         }
@@ -1215,7 +1249,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     public void updateApp(CarResponse carResponse) {
         if (carResponse == null) {
-            new ConfirmDialog.Builder(this, true)
+            new ConfirmDialog.Builder(this, false)
 //                    .title(getString(R.string.no_internet_connection_title))
                     .setOnDismissListener(dialog -> {
                         sendCarInfo();
@@ -1235,12 +1269,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             UpdateChecker.checkForDialog(this, updateVersion.getUrl(), forceUpdate, updateVersion.getDescription());
             return;
         }
-        if (!carResponse.isActivatedApp()) {
+        App.isActivated = carResponse.isActivatedApp();
+        if (!App.isActivated) {
             activeApp();
+        } else {
+            startResultFragment();
+            viewModel.getLiveDataStartRecord().postValue(true);
         }
     }
 
     public void activeApp() {
+        startHomeFragment();
         dialogActiveControl = new DialogActiveControl(this, new DialogActiveControl.OnActiveListener() {
             @Override
             public void onAccept(String phone, String activeCode) {
@@ -1266,6 +1305,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                                 VnestSharePreference.getInstance(MainActivity.this).saveActiveCode(code + "Vnest");
                                 App.isActivated = true;
                                 dialogActiveControl.dismiss();
+                                startResultFragment();
+                                viewModel.getLiveDataStartRecord().postValue(true);
                             }
                         }
                     }
@@ -1321,6 +1362,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
             super.onBackPressed();
         }
