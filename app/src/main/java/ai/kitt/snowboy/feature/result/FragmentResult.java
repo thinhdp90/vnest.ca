@@ -287,6 +287,10 @@ public class FragmentResult extends Fragment {
 
     private void playVideo(String url) {
         if (url == null) return;
+        if(url.equalsIgnoreCase("-1")) {
+            btnClosePlayerView.performClick();
+            return;
+        }
         viewModel.getLiveDataOpenVTV().postValue(null);
         finishRecognition();
         playerView.setVisibility(View.VISIBLE);

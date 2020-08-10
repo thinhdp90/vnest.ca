@@ -16,7 +16,7 @@ import ai.kitt.snowboy.entity.Poi;
 public class AppUtil {
     public static final String MAPS_NATIVEL_APP_ID = "com.navitel";
     public static final String MAPS_GOOGLE_MAP_APP_ID = "com.google.android.apps.maps";
-    public static final String MAPS_VIET_MAP_APP_ID = "com.google.android.apps.maps";
+    public static final String MAPS_VIET_MAP_APP_ID = "com.vietmap";
 
     public static void navigationOtPointByName(Double latitude, Double longitude, Context context) {
         Uri intentUri = Uri.parse("google.navigation:ll" + latitude + "," + longitude);

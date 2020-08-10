@@ -31,11 +31,15 @@ import android.graphics.Rect;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -45,6 +49,7 @@ import android.speech.tts.Voice;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -367,6 +372,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     switch (position) {
                         case 0:
                             textSpeech = KEY_OPEN_YOUTUBE;
+//                            Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+//                            long[] pattern = { 0, 1000, 100, 1000, 100, 1000, 100, 1000, 100, 1000, 100};
+////                            vibrator.vibrate(pattern , 5);
+//                            vibrator.vibrate(VibrationEffect.createWaveform(pattern,5));
+//                            vibrator.vibrate(10000, new AudioAttributes.Builder()
+//                                    .setUsage(AudioAttributes.USAGE_ALARM)
+//                                    .setFlags()
+//                                    .setLegacyStreamType(AudioManager.STREAM_ALARM)
+//                                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+//                                    .build());
+
                             break;
                         case 1:
                             textSpeech = KEY_NAVIGATION;
@@ -376,10 +392,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             break;
                         case 3:
                             mDrawerLayout.closeDrawers();
-                            getSupportFragmentManager().beginTransaction()
-                                    .add(R.id.fragment_container, new FragmentSettings())
-                                    .addToBackStack("1")
-                                    .commit();
+                            Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentSettings.TAG);
+                            if (fragment == null) {
+                                getSupportFragmentManager().beginTransaction()
+                                        .replace(R.id.fragment_container, new FragmentSettings(), FragmentSettings.TAG)
+                                        .addToBackStack("1")
+                                        .commit();
+                            }
                             break;
                         default:
                             break;
@@ -1046,6 +1065,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 public void onActionTurnOn() {
                     if (App.isActivated) {
                         startResultFragment();
+                        viewModel.getLiveDataOpenVTV().postValue("-1");
                         viewModel.getLiveDataStartRecord().postValue(true);
                     }
                 }
@@ -1270,6 +1290,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             return;
         }
         App.isActivated = carResponse.isActivatedApp();
+        // for test
+        if (App.isForTest) {
+            App.isActivated = true;
+        }
         if (!App.isActivated) {
             activeApp();
         } else {
@@ -1362,7 +1386,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
         if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
             super.onBackPressed();
         }

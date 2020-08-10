@@ -29,7 +29,7 @@ public class DefaultAssistantAdapter extends RecyclerView.Adapter<RecyclerView.V
         Pair<Integer, String>[] defItems = new Pair[]{new Pair<>(R.drawable.ic_ytb, "Youtube"),
                 new Pair<>(R.drawable.ic_nav, "Maps"),
                 new Pair<>(R.drawable.ic_fuel, "Fuel History"),
-                new Pair<>(R.drawable.ic_mtn, "Maintain Schedule"),
+                new Pair<>(R.drawable.ic_round_settings_24, "Settings"),
                 new Pair<>(R.drawable.ic_add, "Add more")
         };
         defList.addAll(Arrays.asList(defItems));

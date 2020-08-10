@@ -49,12 +49,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/margin_horizontal_to_parent"
+
             android:paddingVertical="@dimen/padding_horizontal_to_parent"
             android:text="@{detailText}"
             android:textSize="@dimen/altitude_text_size_small_12sp"
-            app:layout_constraintBottom_toBottomOf="@+id/label"
+            app:layout_constraintBottom_toBottomOf="@+id/labelView"
             app:layout_constraintEnd_toStartOf="@+id/icon"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toTopOf="@id/labelView"
             tools:text="@string/test" />
 
         <androidx.appcompat.widget.AppCompatImageView
@@ -63,18 +64,19 @@
             android:layout_height="@dimen/def_icon_size_medium"
             android:layout_marginEnd="@dimen/icon_horizontal_margin"
             android:src="@drawable/ic_round_check_24"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="@id/label"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="@+id/labelView"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/label" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <include
+            android:id="@+id/include"
             layout="@layout/item_line"
             android:layout_width="0dp"
             android:layout_height="@dimen/line_height"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@id/label"
-            app:layout_constraintTop_toBottomOf="@id/label" />
+            app:layout_constraintStart_toStartOf="@id/labelView"
+            app:layout_constraintTop_toBottomOf="@id/labelView" />
 
 
         <androidx.appcompat.widget.AppCompatTextView
