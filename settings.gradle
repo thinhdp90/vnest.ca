@@ -1,7 +1,6 @@
 include ':triggerwordoffline'
-include ':triggerword'
 include ':VTV'
 include ':opencam'
 include ':updatelibrary'
 rootProject.name='Vnest_CA'
-include ':app', ':pocketsphinx-android-5prealpha-release'
+include ':app'

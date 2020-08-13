@@ -37,6 +37,14 @@ public class AudioDataSaver implements AudioDataReceivedListener {
         Log.e(TAG, Constants.SAVE_AUDIO);
     }
 
+    public static AudioDataSaver INSTANCE;
+    public static AudioDataSaver getInstance() {
+        if(INSTANCE == null) {
+            INSTANCE = new AudioDataSaver();
+        }
+        return INSTANCE;
+    }
+
     @Override
     public void start() {
         if (null != saveFile) {

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="ai.kitt.snowboy">
+    package="ai.kitt.vnest">
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -33,7 +33,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.splash.SplashActivity"
+        <activity android:name=".feature.splash.SplashActivity"
             android:screenOrientation="sensorLandscape"
             android:theme="@style/AppTheme.SplashTheme"
             android:launchMode="singleTask">
@@ -45,19 +45,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.MainActivity"
+            android:name=".feature.activitymain.MainActivity"
             android:launchMode="singleInstance"
             android:screenOrientation="sensorLandscape">
 
         </activity>
-
-        <service android:name=".service.TriggerOfflineService"
-            android:enabled="true"/>
-
-        <receiver
-            android:name="ai.kitt.snowboy.service.TriggerBroadCast"
-            android:enabled="true"
-            android:exported="true" />
     </application>
 
 </manifest>

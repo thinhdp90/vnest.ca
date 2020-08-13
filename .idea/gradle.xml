@@ -13,8 +13,6 @@
             <option value="$PROJECT_DIR$/VTV" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/opencam" />
-            <option value="$PROJECT_DIR$/pocketsphinx-android-5prealpha-release" />
-            <option value="$PROJECT_DIR$/triggerword" />
             <option value="$PROJECT_DIR$/triggerwordoffline" />
             <option value="$PROJECT_DIR$/updatelibrary" />
           </set>

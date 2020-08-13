@@ -10,7 +10,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application>
-<!--        <service android:name="ai.kitt.snowboy.service.TriggerOfflineService" />-->
-        <receiver android:name=".service.TriggerBroadCast" />
+        <service android:name="ai.kitt.snowboy.service.TriggerOfflineService" />
+        <receiver
+            android:name="ai.kitt.snowboy.service.TriggerBroadCast"
+            android:enabled="true"
+            android:exported="true" />
     </application>
 </manifest>

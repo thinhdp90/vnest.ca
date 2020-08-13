@@ -1,6 +1,5 @@
 package ai.kitt.snowboy.service;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +10,7 @@ public class TriggerBroadCast extends BroadcastReceiver {
     public final static String ACTION_TURN_MIC_ON = "turn on";
     public final static String ACTION_TURN_MIC_OFF = "turn off";
     public final static String ACTION_START_APP = "start_app";
+    private final static String TAG = "Trigger broadcast";
     private OnHandleTrigger onHandleTrigger;
     private Class<?> activity;
 
@@ -25,7 +25,9 @@ public class TriggerBroadCast extends BroadcastReceiver {
     }
 
     public static void unregisterBroadCast(Context context, TriggerBroadCast triggerBroadCast) {
-        context.unregisterReceiver(triggerBroadCast);
+        if (triggerBroadCast != null) {
+            context.unregisterReceiver(triggerBroadCast);
+        }
     }
 
     public TriggerBroadCast(OnHandleTrigger onHandleTrigger, Class<?> activity) {
@@ -38,33 +40,24 @@ public class TriggerBroadCast extends BroadcastReceiver {
         String action = intent.getAction();
         assert action != null;
         if (action.equals(ACTION_TURN_MIC_ON)) {
-            Log.e("Action", "Turn on mic");
+            Log.e(TAG, "Turn on mic");
             onHandleTrigger.onActionTurnOn();
             return;
         }
         if (action.equals(ACTION_START_APP)) {
-            Log.e("Action", "Start app from broadcast");
+            Log.e(TAG, "Start app from broadcast");
             try {
-                Intent startAppIntent = new Intent(context, activity);
-                startAppIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);
-                if (context instanceof Activity) {
-                    ((Activity) context).finish();
-                }
-                Runtime.getRuntime().exit(0);
-
-//                Intent dialogIntent = new Intent(context, activity);
-//                dialogIntent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME);
-//                dialogIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
-//                dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                context.startActivity(dialogIntent);
+                Intent i = new Intent();
+                i.setClassName("ai.kitt.snowboy", "ai.kitt.snowboy.feature.splash.SplashActivity");
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(i);
             } catch (Exception e) {
-                Log.e("Error start app", e.getMessage(), e);
+                Log.e(TAG, e.getMessage(), e);
             }
             return;
         }
         if (action.equals(ACTION_TURN_MIC_OFF)) {
-            Log.e("Action", "TUrn off mic");
+            Log.e(TAG, "Turn off mic");
             onHandleTrigger.onActionTurnOff();
         }
     }
