@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
@@ -36,11 +37,11 @@ android {
     productFlavors {
         minApi23 {
             dimension "apiVersion"
-            minSdkVersion "23"
+            minSdkVersion 23
         }
         minApi21 {
             dimension "apiVersion"
-            minSdkVersion "21"
+            minSdkVersion 21
         }
     }
 
@@ -88,8 +89,9 @@ dependencies {
     implementation 'ai.api:sdk:2.0.7'
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0"
     implementation "androidx.room:room-runtime:$room_version"
-    annotationProcessor "androidx.room:room-compiler:$room_version"
-    // For Kotlin use kapt instead of annotationProcessor
+    kapt "androidx.room:room-compiler:$room_version"
+    // For Kotlin use kapt instead of kapt
+    implementation 'com.android.support:multidex:1.0.3'
 
     // optional - Kotlin Extensions and Coroutines support for Room
     implementation "androidx.room:room-ktx:$room_version"
@@ -103,7 +105,7 @@ dependencies {
     // Test helpers
     testImplementation "androidx.room:room-testing:$room_version"
     implementation 'com.github.bumptech.glide:glide:4.11.0'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
+    kapt 'com.github.bumptech.glide:compiler:4.11.0'
     implementation "com.squareup.retrofit2:retrofit:$retrofitVersion"
     implementation "com.squareup.okhttp3:logging-interceptor:$logginInterceptor"
     implementation "com.squareup.retrofit2:converter-gson:$retrofitVersion"

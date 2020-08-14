@@ -1,4 +1,4 @@
-package ai.kitt.vnest.base;
+package ai.kitt.vnest.feature.activitymain;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -19,7 +19,6 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.MenuItem;
 import android.widget.TextView;
 
@@ -70,9 +69,6 @@ import ai.kitt.vnest.basedata.entity.Youtube;
 import ai.kitt.vnest.databinding.ActivityMainBinding;
 import ai.kitt.vnest.R;
 import ai.kitt.vnest.basedata.api.repository.ActiveRepo;
-import ai.kitt.vnest.feature.activitymain.MainActivity;
-import ai.kitt.vnest.feature.activitymain.ViewModel;
-import ai.kitt.vnest.feature.activitymain.ViewModelFactory;
 import ai.kitt.vnest.feature.activitymain.adapters.ItemNavigationAdapter;
 import ai.kitt.vnest.feature.screenhome.FragmentHome;
 import ai.kitt.vnest.feature.screenspeech.FragmentResult;
@@ -227,12 +223,15 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
     }
 
 
-    protected void initIfPermissionGranted(){
+    protected void initIfPermissionGranted() {
         initView();
         initAction();
+        initBaseAction();
     }
-    protected abstract void  initView();
-    private void initAction() {
+
+    protected abstract void initView();
+    protected abstract void initAction();
+    private void initBaseAction() {
         sendCarInfo();
         initSpeechRecognizerManager();
         viewModel.getLiveDataUpdateResponse().observe(this, this::updateApp);
@@ -252,6 +251,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
                 AIConfiguration.RecognitionEngine.System);
         aiService = AIService.getService(this, config);
     }
+
     protected void initProgressDialog() {
         if (downloadDialog == null) {
             downloadDialog = new ProgressDialog(this);
@@ -262,9 +262,10 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
         }
         downloadDialog.show();
     }
+
     /**
      * Compare current time ti previous time to reset context
-     * **/
+     **/
     protected Boolean calculateResetContext(long previousProcessTime, long currentProcessTime) {
         if (previousProcessTime == 0) return false;
         if (previousProcessTime == -1) return true;
@@ -321,6 +322,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
         textToSpeech = TextToSpeechManager.getInstance(this);
         textToSpeech.setTextToSpeechListener(this);
     }
+
     protected void initSpeechRecognizerManager() {
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this, ComponentName.unflattenFromString("com.google.android.googlequicksearchbox/com.google.android.voicesearch.serviceapi.GoogleRecognitionService"));
         speechRecognizerManager = SpeechRecognizerManager.getInstance(this, new OnResultReady() {
@@ -345,12 +347,14 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
             }
         }, speechRecognizer, () -> viewModel.getLiveDataRebindRecognitionsView().postValue(true));
     }
+
     public void finishRecognition() {
         isStartRecognizer = false;
         if (speechRecognizerManager != null) {
             speechRecognizerManager.stopListening();
         }
     }
+
     public void processing_text(final String text, Boolean resetContext) {
         Log.d(LOG_TAG, "================= processing_text: " + text);
         Thread thread = new Thread(() -> {
@@ -449,9 +453,11 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
         });
         thread.start();
     }
+
     protected void resetContext() {
         contexts = null;
     }
+
     protected void weather() {
         final ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("please waiting....");
@@ -544,6 +550,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
 
         dialog.show();
     }
+
     public void sendMessage(String text, boolean isUser) {
         viewModel.getLiveDataProcessText().postValue(new Message(text, isUser, Calendar.getInstance().getTimeInMillis()));
     }
@@ -562,6 +569,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
                     .commit();
         }
     }
+
     public void startResultFragment() {
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentResult.class.getName());
         if (fragment == null) {
@@ -572,6 +580,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
                     .commit();
         }
     }
+
     @SuppressLint("HardwareIds")
     protected void sendCarInfo() {
         deviceId = Settings.Secure.getString(getContentResolver(),
@@ -613,6 +622,30 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
         }
     }
 
+    public void activeApp() {
+        startHomeFragment();
+        dialogActiveControl = new DialogActiveControl(this, new DialogActiveControl.OnActiveListener() {
+            @Override
+            public void onAccept(String phone, String activeCode) {
+                if (progressDialog == null) {
+                    progressDialog = DialogUtils.showProgressDialog(BaseMainActivity.this, false);
+                } else {
+                    progressDialog.show();
+                    dialogActiveControl.dismiss();
+                }
+                viewModel.activeDevice(new ActiveCode(phone, activeCode,
+                                AppUtil.getImei(BaseMainActivity.this),
+                                AppUtil.getDeviceId(BaseMainActivity.this)),
+                        BaseMainActivity.this);
+            }
+
+            @Override
+            public void onFail() {
+
+            }
+        });
+        dialogActiveControl.show();
+    }
 
     protected void searchPlaceUnknown(String text, AIResponse aiRes) {
         String textSpeech = aiRes.getResult().getFulfillment().getSpeech();
@@ -740,30 +773,6 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
         speak(textSpeech, true);
     }
 
-    public void activeApp() {
-        startHomeFragment();
-        dialogActiveControl = new DialogActiveControl(this, new DialogActiveControl.OnActiveListener() {
-            @Override
-            public void onAccept(String phone, String activeCode) {
-                if (progressDialog == null) {
-                    progressDialog = DialogUtils.showProgressDialog(BaseMainActivity.this, false);
-                } else {
-                    progressDialog.show();
-                    dialogActiveControl.dismiss();
-                }
-                viewModel.activeDevice(new ActiveCode(phone, activeCode,
-                                AppUtil.getImei(BaseMainActivity.this),
-                                AppUtil.getDeviceId(BaseMainActivity.this)),
-                        BaseMainActivity.this);
-            }
-
-            @Override
-            public void onFail() {
-
-            }
-        });
-        dialogActiveControl.show();
-    }
 
     @Override
     public void onActiveAppSuccess(ActiveResponse activeCode) {

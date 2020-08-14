@@ -47,8 +47,8 @@ public class TriggerBroadCast extends BroadcastReceiver {
         if (action.equals(ACTION_START_APP)) {
             Log.e(TAG, "Start app from broadcast");
             try {
-                Intent i = new Intent();
-                i.setClassName("ai.kitt.snowboy", "ai.kitt.snowboy.feature.splash.SplashActivity");
+                Intent i = new Intent(context, Class.forName("ai.kitt.vnest.feature.splash.SplashActivity"));
+//                i.setClassName("ai.kitt.vnest", "ai.kitt.vnest.feature.splash.SplashActivity");
                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(i);
             } catch (Exception e) {

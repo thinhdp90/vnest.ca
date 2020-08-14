@@ -1,7 +1,5 @@
 package ai.kitt.vnest.feature.activitymain;
 
-import ai.api.model.AIOutputContext;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -11,6 +9,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.content.Context;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -25,24 +24,19 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.kwabenaberko.openweathermaplib.constants.Lang;
 import com.kwabenaberko.openweathermaplib.constants.Units;
 import com.kwabenaberko.openweathermaplib.implementation.OpenWeatherMapHelper;
+
 import ai.kitt.vnest.R;
-import ai.kitt.vnest.base.BaseMainActivity;
 import ai.kitt.vnest.feature.activitymain.adapters.DefaultAssistantAdapter;
 import ai.kitt.vnest.feature.screenhome.AdapterHomeItemDefault;
 import ai.kitt.vnest.feature.screenhome.FragmentHome;
 import ai.kitt.vnest.feature.screensettings.FragmentSettings;
-import java.util.List;
+
 import java.util.Objects;
 
 public class MainActivity extends BaseMainActivity {
-
-
     private View bottomSheetLayout;
     private BottomSheetBehavior bottomSheetBehavior;
     private FrameLayout fragmentContainer;
-
-    private String deviceId;
-    private List<AIOutputContext> contexts;
     private RecyclerView mRecyclerViewDefaultAssistant;
     private RecyclerView mRecyclerViewDefaultMainItem;
     private View mCollapseView;
@@ -54,7 +48,6 @@ public class MainActivity extends BaseMainActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        setContentView(R.layout.activity_main);
     }
 
     @Override
@@ -63,14 +56,18 @@ public class MainActivity extends BaseMainActivity {
         mRecyclerViewDefaultAssistant = findViewById(R.id.recycler_view_def_assistant);
         mCollapseView = findViewById(R.id.view_collapse);
         initLeftNav();
+        initBottomSheet();
 
+    }
+
+    @Override
+    protected void initAction() {
         if (fragmentContainer != null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new FragmentHome())
                     .addToBackStack(MainActivity.class.getName())
                     .commit();
         }
-        initBottomSheet();
         if (mCollapseView != null) {
             mCollapseView.setOnClickListener(view -> {
                 if (mDrawerLayout.isDrawerOpen(mDrawer)) {
@@ -184,9 +181,6 @@ public class MainActivity extends BaseMainActivity {
         weather.setLang(Lang.VIETNAMESE);
     }
 
-
-
-
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {
@@ -201,7 +195,5 @@ public class MainActivity extends BaseMainActivity {
         }
         return super.dispatchTouchEvent(ev);
     }
-
-
 
 }
