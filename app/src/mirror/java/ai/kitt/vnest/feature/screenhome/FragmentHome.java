@@ -26,11 +26,6 @@ public class FragmentHome extends Fragment {
     private static final String HELLO_ASSISTANT = "Chào bạn, tôi có thể giúp gì cho bạn";
 
     private Button btnListener;
-    private RecyclerView mRecyclerView;
-    private AdapterHomeItemDefault adapter;
-    private View backIcon;
-    private TextView btnBack;
-    private TextView assistantText;
     private ViewModel viewModel;
 
 
@@ -56,15 +51,10 @@ public class FragmentHome extends Fragment {
 
     private void initView(View view) {
         btnListener = view.findViewById(R.id.btnVoice);
-        mRecyclerView = view.findViewById(R.id.recyclerview_def_item);
-        btnBack = view.findViewById(R.id.btn_back);
-        backIcon = view.findViewById(R.id.icon_back);
-        assistantText = view.findViewById(R.id.text_assistant);
     }
 
     private void initAction(View view) {
         viewModel.getMessage();
-
         btnListener.setOnClickListener(view1 -> {
             getMainActivity().startResultFragment();
             viewModel.getLiveDataStartRecord().postValue(true);

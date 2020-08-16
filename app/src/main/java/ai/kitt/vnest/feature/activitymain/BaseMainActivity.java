@@ -19,6 +19,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.widget.TextView;
 
@@ -28,6 +29,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.databinding.DataBindingUtil;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -69,8 +71,10 @@ import ai.kitt.vnest.basedata.entity.Youtube;
 import ai.kitt.vnest.databinding.ActivityMainBinding;
 import ai.kitt.vnest.R;
 import ai.kitt.vnest.basedata.api.repository.ActiveRepo;
+import ai.kitt.vnest.feature.activitymain.adapters.DefaultAssistantAdapter;
 import ai.kitt.vnest.feature.activitymain.adapters.ItemNavigationAdapter;
 import ai.kitt.vnest.feature.screenhome.FragmentHome;
+import ai.kitt.vnest.feature.screensettings.FragmentSettings;
 import ai.kitt.vnest.feature.screenspeech.FragmentResult;
 import ai.kitt.vnest.speechmanager.speechonline.OnResultReady;
 import ai.kitt.vnest.speechmanager.speechonline.SpeechRecognizerManager;
@@ -261,6 +265,50 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
             downloadDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         }
         downloadDialog.show();
+    }
+
+    protected DefaultAssistantAdapter getAssistantAdapter(int numItems, final DrawerLayout mDrawerLayout) {
+        return new DefaultAssistantAdapter((text, position) -> {
+            try {
+                contexts = null;
+                String textSpeech = null;
+                switch (position) {
+                    case 0:
+                        textSpeech = KEY_OPEN_YOUTUBE;
+                        break;
+                    case 1:
+                        textSpeech = KEY_NAVIGATION;
+                        break;
+                    case 2:
+                        textSpeech = KEY_GASOLINE_HISTORY;
+                        break;
+                    case 3:
+                        if(mDrawerLayout !=null) {
+                            mDrawerLayout.closeDrawer(Gravity.LEFT);
+                        }
+                        Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentSettings.TAG);
+                        if (fragment == null) {
+                            getSupportFragmentManager().beginTransaction()
+                                    .replace(R.id.fragment_container, new FragmentSettings(), FragmentSettings.TAG)
+                                    .addToBackStack("1")
+                                    .commit();
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                if (textSpeech != null) {
+                    viewModel.getLiveDataStartRecord().postValue(false);
+                    sendMessage(textSpeech, true);
+                    processing_text(textSpeech, true);
+                    startResultFragment();
+                    if(mDrawerLayout !=null) {
+                        mDrawerLayout.closeDrawer(Gravity.LEFT);
+                    }                }
+            } catch (Exception e) {
+                Log.e(LOG_TAG, e.getMessage(), e);
+            }
+        }, numItems);
     }
 
     /**

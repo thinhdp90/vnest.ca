@@ -116,7 +116,7 @@ public class AdapterResult extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             ItemListResult itemListResult = (ItemListResult) item;
             AdapterResultChild adapterResult = new AdapterResultChild(itemListResult.getPoiList());
             mRecyclerView.setAdapter(adapterResult);
-            mRecyclerView.setLayoutManager(new GridLayoutManager(itemView.getContext(), 2));
+            mRecyclerView.setLayoutManager(new GridLayoutManager(itemView.getContext(), 4));
             mRecyclerView.scrollToPosition(1);
             itemView.setOnClickListener( view -> {
 

@@ -17,22 +17,33 @@ import java.util.Arrays;
 import ai.kitt.vnest.R;
 
 public class DefaultAssistantAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private static Pair<Integer, String>[] defaultItems = new Pair[]{new Pair<>(R.drawable.ic_ytb, "Youtube"),
+            new Pair<>(R.drawable.ic_nav, "Maps"),
+            new Pair<>(R.drawable.ic_fuel, "Fuel History"),
+            new Pair<>(R.drawable.ic_round_settings_24, "Settings"),
+            new Pair<>(R.drawable.ic_add, "Add more")
+    };
     private ArrayList<Pair<Integer, String>> defList = new ArrayList<>();
     private OnItemClickListener onItemClickListener;
+    private int numItems = -1;
 
     public DefaultAssistantAdapter(OnItemClickListener onItemClickListener) {
         setDefaultList();
         this.onItemClickListener = onItemClickListener;
     }
 
+    public DefaultAssistantAdapter(OnItemClickListener onItemClickListener, int numItems) {
+        setDefaultList();
+        this.onItemClickListener = onItemClickListener;
+        this.numItems = numItems;
+    }
+
     public void setDefaultList() {
-        Pair<Integer, String>[] defItems = new Pair[]{new Pair<>(R.drawable.ic_ytb, "Youtube"),
-                new Pair<>(R.drawable.ic_nav, "Maps"),
-                new Pair<>(R.drawable.ic_fuel, "Fuel History"),
-                new Pair<>(R.drawable.ic_round_settings_24, "Settings"),
-                new Pair<>(R.drawable.ic_add, "Add more")
-        };
-        defList.addAll(Arrays.asList(defItems));
+        if (numItems == -1) {
+            numItems = 5;
+        }
+        Pair<Integer, String>[] defItems = defaultItems;
+        defList.addAll(Arrays.asList(defItems).subList(0, numItems));
     }
 
     @NonNull
