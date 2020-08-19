@@ -1,6 +1,7 @@
-package ai.kitt.vnest.feature.screenspeech;
+package ai.kitt.vnest.feature.screenspeech.adapters;
 
 import android.annotation.SuppressLint;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,18 +16,19 @@ import com.bumptech.glide.Glide;
 import ai.kitt.vnest.R;
 import ai.kitt.vnest.basedata.entity.Poi;
 import ai.kitt.vnest.util.AppUtil;
+import ai.kitt.vnest.util.GlideApp;
 
 import java.util.List;
 
-public class AdapterResultChild extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class AdapterAddressResult extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<Poi> poiList;
     private Boolean isCollapse;
 
-    public AdapterResultChild(List<Poi> poiList) {
+    public AdapterAddressResult(List<Poi> poiList) {
         this.poiList = poiList;
         isCollapse = poiList.size() > 3;
     }
-    public AdapterResultChild(List<Poi> poiList, Boolean isCollapse) {
+    public AdapterAddressResult(List<Poi> poiList, Boolean isCollapse) {
         this.poiList = poiList;
         this.isCollapse = isCollapse;
     }
@@ -78,10 +80,16 @@ public class AdapterResultChild extends RecyclerView.Adapter<RecyclerView.ViewHo
         @SuppressLint("SetTextI18n")
         public void onBind(Poi poi) {
             try {
+                if(poi.getTitle() == null || poi.getTitle().trim().isEmpty()) {
+                    itemName.setHeight(0);
+                }
                 itemName.setText(poi.getTitle());
                 itemAddress.setText(poi.getAddress());
                 itemDistance.setText(((int) poi.getDistance()) + "m");
-                Glide.with(imageView).load(poi.getImg())
+                Log.e("ImageUrl", poi.getImg());
+                imageView.setClipToOutline(true);
+                GlideApp.with(itemView)
+                        .load(poi.getImg().trim())
                         .into(imageView);
                 itemView.setOnClickListener(view1 -> {
                     AppUtil.displayPointToMap(poi, itemView.getContext());

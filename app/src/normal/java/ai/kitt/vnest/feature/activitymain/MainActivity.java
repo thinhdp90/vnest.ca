@@ -1,15 +1,5 @@
 package ai.kitt.vnest.feature.activitymain;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.Context;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -20,18 +10,28 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.kwabenaberko.openweathermaplib.constants.Lang;
 import com.kwabenaberko.openweathermaplib.constants.Units;
 import com.kwabenaberko.openweathermaplib.implementation.OpenWeatherMapHelper;
+
+import java.util.Objects;
 
 import ai.kitt.vnest.R;
 import ai.kitt.vnest.feature.activitymain.adapters.DefaultAssistantAdapter;
 import ai.kitt.vnest.feature.screenhome.AdapterHomeItemDefault;
 import ai.kitt.vnest.feature.screenhome.FragmentHome;
 import ai.kitt.vnest.feature.screensettings.FragmentSettings;
-
-import java.util.Objects;
 
 public class MainActivity extends BaseMainActivity {
     private View bottomSheetLayout;

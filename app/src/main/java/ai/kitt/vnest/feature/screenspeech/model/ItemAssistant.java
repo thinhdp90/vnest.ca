@@ -29,6 +29,6 @@ public class ItemAssistant implements ResultItem {
 
     @Override
     public int getItemViewType() {
-        return isFromUser ? R.layout.item_user : R.layout.item_mess_from_assistant;
+        return isFromUser ? R.layout.item_mess_from_user : R.layout.item_mess_from_assistant;
     }
 }

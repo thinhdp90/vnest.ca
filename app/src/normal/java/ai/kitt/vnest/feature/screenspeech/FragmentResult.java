@@ -43,6 +43,7 @@ import ai.kitt.vnest.App;
 import ai.kitt.vnest.R;
 import ai.kitt.vnest.feature.activitymain.MainActivity;
 import ai.kitt.vnest.feature.activitymain.ViewModel;
+import ai.kitt.vnest.feature.screenspeech.adapters.AdapterAssistantMessage;
 import ai.kitt.vnest.feature.screenspeech.model.ItemAssistant;
 import ai.kitt.vnest.feature.screenspeech.model.ItemListResult;
 import ai.kitt.vnest.feature.screenspeech.model.ResultItem;
@@ -54,7 +55,7 @@ public class FragmentResult extends Fragment {
     private RecyclerView mListResult;
     private TextView btnBack;
     private View iconBack;
-    private AdapterResult adapter;
+    private AdapterAssistantMessage adapter;
     private ViewModel viewModel;
     private Button btnVoice;
     private Boolean isStartingRecognitionProgressView = false;
@@ -111,7 +112,7 @@ public class FragmentResult extends Fragment {
 
     public void intAction(View view) {
         setUpRecognitionsUi();
-        adapter = new AdapterResult();
+        adapter = new AdapterAssistantMessage();
         mListResult.setAdapter(adapter);
         mListResult.setLayoutManager(new LinearLayoutManager(getContext()));
         btnVoice.setOnClickListener(view1 -> {

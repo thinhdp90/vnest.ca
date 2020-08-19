@@ -5,21 +5,19 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.RecyclerView;
-
-import ai.kitt.vnest.R;
-import ai.kitt.vnest.feature.activitymain.MainActivity;
-import ai.kitt.vnest.feature.activitymain.ViewModel;
-import ai.kitt.vnest.basedata.entity.Message;
 
 import java.util.Calendar;
 import java.util.Objects;
+
+import ai.kitt.vnest.R;
+import ai.kitt.vnest.basedata.entity.Message;
+import ai.kitt.vnest.feature.activitymain.MainActivity;
+import ai.kitt.vnest.feature.activitymain.ViewModel;
 
 public class FragmentHome extends Fragment {
     private static final String LOG_TAG = "VNest";

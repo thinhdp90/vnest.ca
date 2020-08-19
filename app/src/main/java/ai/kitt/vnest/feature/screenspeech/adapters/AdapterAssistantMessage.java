@@ -1,4 +1,4 @@
-package ai.kitt.vnest.feature.screenspeech;
+package ai.kitt.vnest.feature.screenspeech.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,7 +16,7 @@ import ai.kitt.vnest.feature.screenspeech.model.ResultItem;
 
 import java.util.ArrayList;
 
-public class AdapterResult extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class AdapterAssistantMessage extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private ArrayList<ResultItem> mListItem = new ArrayList<>();
 
     public ArrayList<ResultItem> getListItem() {
@@ -39,7 +39,7 @@ public class AdapterResult extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         View view = LayoutInflater.from(parent.getContext()).inflate(viewType, parent, false);
         RecyclerView.ViewHolder viewHolder;
         switch (viewType) {
-            case R.layout.item_user:
+            case R.layout.item_mess_from_user:
                 viewHolder = new UserViewHolder(view);
                 break;
             case R.layout.item_mess_from_assistant:
@@ -114,9 +114,9 @@ public class AdapterResult extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         @Override
         public void onBind(ResultItem item) {
             ItemListResult itemListResult = (ItemListResult) item;
-            AdapterResultChild adapterResult = new AdapterResultChild(itemListResult.getPoiList());
+            AdapterAddressResult adapterResult = new AdapterAddressResult(itemListResult.getPoiList());
             mRecyclerView.setAdapter(adapterResult);
-            mRecyclerView.setLayoutManager(new GridLayoutManager(itemView.getContext(), 4));
+            mRecyclerView.setLayoutManager(new GridLayoutManager(itemView.getContext(), itemView.getResources().getInteger(R.integer.list_result_span_count)));
             mRecyclerView.scrollToPosition(1);
             itemView.setOnClickListener( view -> {
 

@@ -31,7 +31,6 @@ public class TriggerOfflineService extends Service {
     };
 
 
-
     public static void startService(Context context, boolean isWakeUp) {
         Intent intent = new Intent(context, TriggerOfflineService.class);
         if (isWakeUp) {
@@ -74,10 +73,10 @@ public class TriggerOfflineService extends Service {
                     updateLog(" ============== " + message + "==============");
                     break;
                 case MSG_VAD_SPEECH:
-                    updateLog(" ============== normal voice" + " Offline==============");
+//                    updateLog(" ============== normal voice" + " Offline==============");
                     break;
                 case MSG_VAD_NOSPEECH:
-                    updateLog(" ============== no speech" + " Offline==============");
+//                    updateLog(" ============== no speech" + " Offline==============");
                     break;
                 case MSG_ERROR:
                     startOfflineRecording();
@@ -123,19 +122,23 @@ public class TriggerOfflineService extends Service {
 
     public void updateIfActive() {
         stopOfflineRecording();
-        Intent intent = new Intent();
-        switch (keyStartService) {
-            case WAKE_UP:
-                intent.setAction(TriggerBroadCast.ACTION_START_APP);
-                break;
-            case TURN_ON_MIC:
-                intent.setAction(TriggerBroadCast.ACTION_TURN_MIC_ON);
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + keyStartService);
-        }
-        sendBroadcast(intent);
-//        stopSelf();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent();
+                switch (keyStartService) {
+                    case WAKE_UP:
+                        intent.setAction(TriggerBroadCast.ACTION_START_APP);
+                        break;
+                    case TURN_ON_MIC:
+                        intent.setAction(TriggerBroadCast.ACTION_TURN_MIC_ON);
+                        break;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + keyStartService);
+                }
+                sendBroadcast(intent);
+            }
+        }, 300);
     }
 
     public void stopOfflineRecording() {

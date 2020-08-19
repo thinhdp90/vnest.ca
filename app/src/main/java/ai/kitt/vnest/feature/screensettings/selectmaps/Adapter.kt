@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.item_maps.view.*
+import kotlinx.android.synthetic.main.item_settings_maps.view.*
 
 class Adapter(val defAppId: String, val onCLick: (item: MapItems) -> Unit) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     companion object {
@@ -15,7 +15,7 @@ class Adapter(val defAppId: String, val onCLick: (item: MapItems) -> Unit) : Rec
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_maps, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_settings_maps, parent, false)
         return ViewHolder(view)
     }
 

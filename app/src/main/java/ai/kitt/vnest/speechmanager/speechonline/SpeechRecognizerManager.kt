@@ -35,15 +35,13 @@ class SpeechRecognizerManager(
 
     val TAG = "Vnest"
     private var speechIntent: Intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-    private var timeOut = 20000
+    private var timeOut = 2000
     private var isListening = false
     val speechListener = SpeechRecognitionListener(
             onResultReady, {
         if (isListening) {
             recreateVoiceRecord()
-            Log.e("Restart listening", "OK")
         } else {
-            Log.e("Stop listening", "OK")
             muteVolume(false)
         }
     }, {
@@ -97,9 +95,8 @@ class SpeechRecognizerManager(
     }
 
     fun stopListening() {
-        Log.e(TAG, "=============Stop listening=============")
         speechRecognizer.let {
-//            speechRecognizer.destroy()
+            speechRecognizer.destroy()
             speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
             speechRecognizer.setRecognitionListener(speechListener)
             onRecreateVoiceRecord.onRecreate()
@@ -109,8 +106,6 @@ class SpeechRecognizerManager(
         isListening = false
         muteVolume(false)
         TriggerOfflineService.startService(App.get(),false)
-//        TriggerOfflineService.stopService(App.get())
-//        TriggerOfflineService.startService(App.get(),false)
     }
 
     fun destroy() {

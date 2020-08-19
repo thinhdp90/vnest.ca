@@ -67,7 +67,7 @@
             app:layout_constraintTop_toTopOf="@id/label" />
 
         <include
-            layout="@layout/item_line"
+            layout="@layout/layout_line"
             android:layout_width="0dp"
             android:layout_height="@dimen/line_height"
             app:layout_constraintEnd_toEndOf="parent"
