@@ -26,6 +26,10 @@ public class AdapterResultChild extends RecyclerView.Adapter<RecyclerView.ViewHo
         this.poiList = poiList;
         isCollapse = poiList.size() > 3;
     }
+    public AdapterResultChild(List<Poi> poiList, Boolean isCollapse) {
+        this.poiList = poiList;
+        this.isCollapse = isCollapse;
+    }
 
     @NonNull
     @Override

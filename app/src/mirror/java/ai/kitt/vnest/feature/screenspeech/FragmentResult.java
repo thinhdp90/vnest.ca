@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnticipateOvershootInterpolator;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -14,11 +15,17 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.content.ContextCompat;
+import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.transition.ChangeBounds;
+import androidx.transition.Transition;
+import androidx.transition.TransitionManager;
 
 import com.github.zagum.speechrecognitionview.RecognitionProgressView;
 import com.google.android.exoplayer2.DefaultLoadControl;
@@ -41,6 +48,7 @@ import com.google.android.exoplayer2.util.Util;
 import ai.kitt.snowboy.service.TriggerOfflineService;
 import ai.kitt.vnest.App;
 import ai.kitt.vnest.R;
+import ai.kitt.vnest.databinding.FragmentResultBinding;
 import ai.kitt.vnest.feature.activitymain.MainActivity;
 import ai.kitt.vnest.feature.activitymain.ViewModel;
 import ai.kitt.vnest.feature.screenspeech.model.ItemAssistant;
@@ -65,6 +73,8 @@ public class FragmentResult extends Fragment {
     private TrackSelector trackSelector;
     private ImageView btnClosePlayerView;
 
+    private FragmentResultBinding binding;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,8 +84,8 @@ public class FragmentResult extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_result, container, false);
-        return view;
+        binding = DataBindingUtil.inflate(inflater,R.layout.fragment_result,container,false);
+        return binding.getRoot();
     }
 
     @Override
@@ -106,6 +116,7 @@ public class FragmentResult extends Fragment {
         recognitionProgressView = view.findViewById(R.id.recognition_view);
         playerView = view.findViewById(R.id.playerView);
         btnClosePlayerView = view.findViewById(R.id.btnClosePlayerView);
+        binding.mRecyclerViewResult.setLayoutManager(new GridLayoutManager(requireContext(),2));
         initRecognitionProgressView();
     }
 
@@ -155,8 +166,14 @@ public class FragmentResult extends Fragment {
         });
 
         viewModel.getLiveListPoi().observe(getViewLifecycleOwner(), pois -> {
-            adapter.addItem(new ItemListResult(pois));
-            mListResult.scrollToPosition(adapter.getItemCount() - 1);
+//            adapter.addItem(new ItemListResult(pois));
+//            mListResult.scrollToPosition(adapter.getItemCount() - 1);
+            showListResult();
+            binding.mRecyclerViewResult.setAdapter(new AdapterResultChild(pois,false));
+
+            // listResultAdapter.setVisibility(true);
+            //            showListResult();
+            // listResultAdapter.refresh(pois);
         });
         viewModel.getLiveDataStartRecord().observe(getViewLifecycleOwner(), aBoolean -> {
             if (aBoolean == null) return;
@@ -208,13 +225,13 @@ public class FragmentResult extends Fragment {
         recognitionProgressView.setIdleStateAmplitudeInDp(8); // bien do dao dong cua cham tron
         recognitionProgressView.setRotationRadiusInDp(0); // kich thuoc vong quay cua cham tron
         recognitionProgressView.play();
-        Log.e("sdfsddddddddddd", SpeechRecognizer.isRecognitionAvailable(requireContext()) +"" );
 
     }
 
-    public void startRecognition() {
+    private void startRecognition() {
         Log.d(LOG_TAG, "start listener....");
         TriggerOfflineService.stopService(requireContext());
+        hideListResult();
         isStartingRecognitionProgressView = true;
         btnVoice.setVisibility(View.INVISIBLE);
         setMarginListResult(120);
@@ -237,14 +254,34 @@ public class FragmentResult extends Fragment {
     }
 
     private void setMarginListResult(int topMargin) {
-        ConstraintLayout.LayoutParams layoutParams = (ConstraintLayout.LayoutParams) mListResult.getLayoutParams();
-        layoutParams.topMargin = (int) (getResources().getDisplayMetrics().scaledDensity * topMargin);
-        mListResult.scrollToPosition(adapter.getItemCount() - 1);
-        mListResult.setLayoutParams(layoutParams);
+//        ConstraintLayout.LayoutParams layoutParams = (ConstraintLayout.LayoutParams) mListResult.getLayoutParams();
+//        layoutParams.topMargin = (int) (getResources().getDisplayMetrics().scaledDensity * topMargin);
+//        mListResult.scrollToPosition(adapter.getItemCount() - 1);
+//        mListResult.setLayoutParams(layoutParams);
     }
 
     public MainActivity getMainActivity() {
         return (MainActivity) getActivity();
+    }
+
+    private void showListResult(){
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(requireContext(), R.layout.fragment_result_state_end);
+        Transition transition =(Transition) new ChangeBounds();
+        transition.setInterpolator(new AnticipateOvershootInterpolator(1.0f));
+        transition.setDuration(1200);
+
+        TransitionManager.beginDelayedTransition(((ConstraintLayout) binding.getRoot()), transition);
+        constraintSet.applyTo((ConstraintLayout) binding.getRoot());
+    }
+    private void hideListResult(){
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(requireContext(), R.layout.fragment_result_state_start);
+        Transition transition =(Transition) new ChangeBounds();
+        transition.setInterpolator(new AnticipateOvershootInterpolator(1.0f));
+        transition.setDuration(1200);
+        TransitionManager.beginDelayedTransition(((ConstraintLayout) binding.getRoot()), transition);
+        constraintSet.applyTo((ConstraintLayout) binding.getRoot());
     }
 
 //    private void initializePlayer() {
