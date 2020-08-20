@@ -29,16 +29,12 @@ public class TextToSpeechManager {
             switch (msg.what) {
                 case RESTART_VOICE_RECOGNITION:
                     mTextToSpeechListener.onRestartVoice();
-//                    viewModel.getLiveDataStartRecord().postValue(true);
                     break;
                 case STOP_VOICE_RECOGNITION:
                     mTextToSpeechListener.onStopVoiceRecord();
-//                    viewModel.getLiveDataStartRecord().postValue(false);
                     break;
                 case UPDATE_AFTER_PROCESS_TEXT:
                     mTextToSpeechListener.onUpdateMessageAfterProcessText(msg);
-//                    ArrayList<Poi> poiArrayList = (ArrayList<Poi>) msg.obj;
-//                    viewModel.getLiveListPoi().postValue(poiArrayList);
                 default:
                     break;
             }

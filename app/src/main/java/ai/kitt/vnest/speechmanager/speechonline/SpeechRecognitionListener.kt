@@ -23,15 +23,14 @@ class SpeechRecognitionListener(
     }
 
     override fun onRmsChanged(rmsdB: Float) {
+
     }
 
     override fun onBeginningOfSpeech() {
-        Log.e("onBeginningOfSpeech", "onBeginningOfSpeech")
         onMuteVolume(true)
     }
 
     override fun onEndOfSpeech() {
-        Log.e("onEndOfSpeech", "onEndOfSpeech")
         onMuteVolume(false)
     }
 
@@ -41,6 +40,9 @@ class SpeechRecognitionListener(
         when (error) {
             SpeechRecognizer.ERROR_NETWORK -> {
 
+            }
+            SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
+                // send to stop speech record
             }
             else -> {
                 onMuteVolume(true)

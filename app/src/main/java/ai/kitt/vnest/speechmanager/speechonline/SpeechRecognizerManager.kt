@@ -23,9 +23,7 @@ class SpeechRecognizerManager(
 
         @JvmStatic
         fun getInstance(context: Context, onResultReady: OnResultReady, speechRecognizer: SpeechRecognizer, onRecreateVoiceRecord: OnRecreateVoiceRecord): SpeechRecognizerManager {
-//            if (INSTANCE == null) {
                 INSTANCE = SpeechRecognizerManager(context, onResultReady, speechRecognizer, onRecreateVoiceRecord)
-//            }
             return INSTANCE!!
         }
 
@@ -62,7 +60,6 @@ class SpeechRecognizerManager(
                 timeOut
         )
         speechRecognizer.setRecognitionListener(speechListener)
-//        TriggerOfflineService.startService(App.get(),false)
     }
 
     fun restartListening() {
@@ -131,12 +128,6 @@ class SpeechRecognizerManager(
             } else {
                 alarmManager.setStreamMute(AudioManager.STREAM_MUSIC, shouldMute)
             }
-//            try {
-//                alarmManager.setStreamMute(AudioManager.STREAM_RING, shouldMute)
-//                alarmManager.setStreamMute(AudioManager.STREAM_SYSTEM, shouldMute)
-//            } catch (e: Exception) {
-//                Log.e("Mute volume", e.javaClass.name)
-//            }
         }
     }
     interface OnRecreateVoiceRecord {
