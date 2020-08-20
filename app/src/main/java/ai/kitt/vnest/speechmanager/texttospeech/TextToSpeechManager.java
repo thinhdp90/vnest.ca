@@ -107,6 +107,9 @@ public class TextToSpeechManager {
     public void setTextToSpeechListener(TextToSpeechListener textToSpeechListener) {
         mTextToSpeechListener = textToSpeechListener;
     }
+    public void shutDown() {
+        mTextToSpeech.shutdown();
+    }
 
     public interface TextToSpeechListener {
         void onRestartVoice();

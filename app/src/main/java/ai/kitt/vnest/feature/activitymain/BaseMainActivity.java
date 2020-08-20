@@ -393,11 +393,20 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
             public void onStreamResult(@NotNull ArrayList<String> partialResults) {
 
             }
-        }, speechRecognizer, () -> viewModel.getLiveDataRebindRecognitionsView().postValue(true));
+        }, speechRecognizer, () -> viewModel.getLiveDataRebindRecognitionsView().postValue(true),() -> {
+            try {
+                FragmentResult fragmentResult = (FragmentResult) getSupportFragmentManager().findFragmentByTag(FragmentResult.class.getName());
+                fragmentResult.stopSpeechTimeCount();
+            }catch (Exception e) {
+                Log.e("Error", e.getMessage(), e);
+            }
+
+        });
     }
 
     public void finishRecognition() {
         isStartRecognizer = false;
+        FragmentResult.isPlayingRecognition = false;
         if (speechRecognizerManager != null) {
             speechRecognizerManager.stopListening();
         }
@@ -1010,7 +1019,12 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
             if (speechRecognizer != null) {
                 speechRecognizer.stopListening();
             }
-
+            try {
+                FragmentResult fragmentResult = (FragmentResult) getSupportFragmentManager().findFragmentByTag(FragmentResult.class.getName());
+                fragmentResult.stopSpeechTimeCount();
+            }catch (Exception e) {
+                Log.e("Error", e.getMessage(), e);
+            }
         }
 
     }
@@ -1019,7 +1033,14 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
     @Override
     protected void onDestroy() {
         Log.e(LOG_TAG, "onDestroy");
+        Intent intent = new Intent();
+        intent.setAction(TriggerBroadCast.ACTION_RESTART_SERVICE);
+        sendBroadcast(intent);
         super.onDestroy();
+        if(textToSpeech!=null) {
+            textToSpeech.shutDown();
+            textToSpeech = null;
+        }
         if (speechRecognizer != null) {
             speechRecognizer.destroy();
         }

@@ -1,6 +1,8 @@
 package ai.kitt.vnest.speechmanager.speechonline
 
+import ai.kitt.vnest.feature.screenspeech.FragmentResult
 import android.os.Bundle
+import android.os.Message
 import android.speech.SpeechRecognizer
 import android.util.Log
 import com.github.zagum.speechrecognitionview.adapters.RecognitionListenerAdapter
@@ -9,7 +11,8 @@ import com.github.zagum.speechrecognitionview.adapters.RecognitionListenerAdapte
 class SpeechRecognitionListener(
         private val mListener: OnResultReady,
         var onErrorNoMatch: () -> Unit,
-        val onMuteVolume: (shouldMute: Boolean) -> Unit
+        val onMuteVolume: (shouldMute: Boolean) -> Unit,
+        val onErrorTimeOut: () -> Unit
 ) : RecognitionListenerAdapter() {
 
     override fun onReadyForSpeech(params: Bundle?) {
@@ -43,6 +46,7 @@ class SpeechRecognitionListener(
             }
             SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
                 // send to stop speech record
+                onErrorTimeOut()
             }
             else -> {
                 onMuteVolume(true)

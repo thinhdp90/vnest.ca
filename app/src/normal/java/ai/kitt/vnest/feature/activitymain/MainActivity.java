@@ -196,4 +196,14 @@ public class MainActivity extends BaseMainActivity {
         return super.dispatchTouchEvent(ev);
     }
 
+    @Override
+    protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        Log.e("User"," On User LeaveHint");
+    }
+
+    @Override
+    public void onUserInteraction() {
+        super.onUserInteraction();
+    }
 }

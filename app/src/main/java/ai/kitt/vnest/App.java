@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
+import ai.kitt.snowboy.service.TriggerBroadCast;
 import ai.kitt.snowboy.service.TriggerOfflineService;
 import ai.kitt.vnest.feature.activitymain.MainActivity;
 import kun.kt.opencam.ipc.ITransitService;
@@ -119,6 +120,7 @@ public class App extends Application implements Application.ActivityLifecycleCal
     public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
 
     }
+
 
     @Override
     public void onActivityDestroyed(Activity activity) {

@@ -11,6 +11,7 @@ public class TriggerBroadCast extends BroadcastReceiver {
     public final static String ACTION_TURN_MIC_OFF = "turn off";
     public final static String ACTION_START_APP = "start_app";
     private final static String TAG = "Trigger broadcast";
+    public final static String ACTION_RESTART_SERVICE = "restart_service";
     private OnHandleTrigger onHandleTrigger;
     private Class<?> activity;
 
@@ -20,6 +21,7 @@ public class TriggerBroadCast extends BroadcastReceiver {
         intentFilter.addAction(ACTION_TURN_MIC_ON);
         intentFilter.addAction(ACTION_TURN_MIC_OFF);
         intentFilter.addAction(ACTION_START_APP);
+        intentFilter.addAction(ACTION_RESTART_SERVICE);
         context.registerReceiver(triggerBroadCast, intentFilter);
         return triggerBroadCast;
     }
@@ -48,7 +50,6 @@ public class TriggerBroadCast extends BroadcastReceiver {
             Log.e(TAG, "Start app from broadcast");
             try {
                 Intent i = new Intent(context, Class.forName("ai.kitt.vnest.feature.splash.SplashActivity"));
-//                i.setClassName("ai.kitt.vnest", "ai.kitt.vnest.feature.splash.SplashActivity");
                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(i);
             } catch (Exception e) {
@@ -59,6 +60,12 @@ public class TriggerBroadCast extends BroadcastReceiver {
         if (action.equals(ACTION_TURN_MIC_OFF)) {
             Log.e(TAG, "Turn off mic");
             onHandleTrigger.onActionTurnOff();
+            return;
+        }
+        if (action.equals(ACTION_RESTART_SERVICE)) {
+            if(!TriggerOfflineService.isServiceRunning) {
+                TriggerOfflineService.startService(context, true);
+            }
         }
     }
 

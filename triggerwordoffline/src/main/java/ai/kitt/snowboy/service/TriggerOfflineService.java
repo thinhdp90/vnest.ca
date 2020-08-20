@@ -2,17 +2,25 @@ package ai.kitt.snowboy.service;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import ai.kitt.snowboy.AppResCopy;
 import ai.kitt.snowboy.MsgEnum;
+import ai.kitt.snowboy.R;
 import ai.kitt.snowboy.audio.AudioDataSaver;
 import ai.kitt.snowboy.audio.PlaybackThread;
 import ai.kitt.snowboy.audio.RecordingThread;
@@ -21,10 +29,12 @@ public class TriggerOfflineService extends Service {
     public static int keyStartService;
     private RecordingThread recordingThread;
     private PlaybackThread playbackThread;
-
+    public static boolean isServiceRunning = false;
     public final static int WAKE_UP = 0;
     public final static int TURN_ON_MIC = 1;
     public static String KEY_START = "extra_trigger";
+    private static final String NOTIFICATION_CHANNEL_ID = "vnest.webvisionvoide";
+    private static final String CHANNEL_NAME = "Background Service";
     public String[] permissions = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -34,6 +44,7 @@ public class TriggerOfflineService extends Service {
     public static void startService(Context context, boolean isWakeUp) {
         Intent intent = new Intent(context, TriggerOfflineService.class);
         if (isWakeUp) {
+            isServiceRunning = true;
             intent.putExtra(KEY_START, WAKE_UP);
         }
         try {
@@ -43,14 +54,34 @@ public class TriggerOfflineService extends Service {
         }
     }
 
+
     public static void stopService(Context context) {
         Intent intent = new Intent(context, TriggerOfflineService.class);
         try {
             context.stopService(intent);
+            isServiceRunning = false;
         } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
         }
     }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void startForceGroundServiceWithNotification() {
+        NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_NONE);
+        notificationChannel.setLightColor(Color.RED);
+        notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        manager.createNotificationChannel(notificationChannel);
+        Notification.Builder builder = new Notification.Builder(this, NOTIFICATION_CHANNEL_ID);
+        Notification notification = builder.setOngoing(true)
+                .setContentTitle("Webvision voice is using your microphone")
+                .setPriority(Notification.PRIORITY_MAX)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .setSmallIcon(R.mipmap.ic_notification)
+                .build();
+        startForeground(2, notification);
+    }
+
 
     @Override
     public void onCreate() {
@@ -89,6 +120,7 @@ public class TriggerOfflineService extends Service {
         }
     };
 
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -98,6 +130,13 @@ public class TriggerOfflineService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         keyStartService = intent.getIntExtra(KEY_START, TURN_ON_MIC);
+        if (keyStartService == WAKE_UP) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForceGroundServiceWithNotification();
+            } else {
+                startForeground(1, new Notification());
+            }
+        }
         startOfflineRecording();
         return START_NOT_STICKY;
     }

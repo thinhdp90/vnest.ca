@@ -16,14 +16,17 @@ class SpeechRecognizerManager(
         val context: Context,
         private var onResultReady: OnResultReady,
         var speechRecognizer: SpeechRecognizer,
-        var onRecreateVoiceRecord: OnRecreateVoiceRecord
+        var onRecreateVoiceRecord: OnRecreateVoiceRecord,
+        var onErrorTimeOut: () -> Unit
 ) {
     companion object {
         var INSTANCE: SpeechRecognizerManager? = null
 
         @JvmStatic
-        fun getInstance(context: Context, onResultReady: OnResultReady, speechRecognizer: SpeechRecognizer, onRecreateVoiceRecord: OnRecreateVoiceRecord): SpeechRecognizerManager {
-                INSTANCE = SpeechRecognizerManager(context, onResultReady, speechRecognizer, onRecreateVoiceRecord)
+        fun getInstance(context: Context, onResultReady: OnResultReady, speechRecognizer: SpeechRecognizer, onRecreateVoiceRecord: OnRecreateVoiceRecord, onError: OnSpeechError): SpeechRecognizerManager {
+                INSTANCE = SpeechRecognizerManager(context, onResultReady, speechRecognizer, onRecreateVoiceRecord, onErrorTimeOut = {
+                    onError.onErrorTimeOut()
+                })
             return INSTANCE!!
         }
 
@@ -44,7 +47,7 @@ class SpeechRecognizerManager(
         }
     }, {
         muteVolume(it)
-    })
+    }, onErrorTimeOut)
 
     init {
         speechIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName);
@@ -132,6 +135,9 @@ class SpeechRecognizerManager(
     }
     interface OnRecreateVoiceRecord {
         fun onRecreate()
+    }
+    interface OnSpeechError{
+        fun onErrorTimeOut()
     }
 
 }

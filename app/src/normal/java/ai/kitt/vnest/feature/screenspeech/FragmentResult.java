@@ -68,26 +68,23 @@ public class FragmentResult extends Fragment {
     private AdapterAssistantMessage adapter;
     private ViewModel viewModel;
     private Button btnVoice;
-    private Boolean isPlayingRecognition = false;
+    public static Boolean isPlayingRecognition = false;
     private RecognitionProgressView recognitionProgressView;
     private DataSource.Factory mediaSourceFactory;
     private PlayerView playerView;
     private ExoPlayer exoPlayer;
     private TrackSelector trackSelector;
     private ImageView btnClosePlayerView;
-    public TimerTask timerTask = new TimerTask() {
+    public Handler timer = new Handler();
+    public Runnable timerSpeech = new Runnable() {
         @Override
         public void run() {
-            speechCountTime--;
-            if (speechCountTime <= 0) {
-                Message message = new Message();
-                message.what = SPEECH_TIME_OUT;
-                message.setTarget(handlerSpeechRecordTimeManager);
-                message.sendToTarget();
-            }
+            Message message = new Message();
+            message.what = SPEECH_TIME_OUT;
+            message.setTarget(handlerSpeechRecordTimeManager);
+            message.sendToTarget();
         }
     };
-    public Timer timer = new Timer();
     public Handler handlerSpeechRecordTimeManager = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
@@ -96,16 +93,16 @@ public class FragmentResult extends Fragment {
                 case SPEECH_TIME_OUT:
                     if (isPlayingRecognition) {
                         finishRecognition();
-                        getMainActivity().getTextToSpeech().speak("Xin lỗi, không thể nhận dạng giọng nói của bạn!", false);
+                        getMainActivity().getTextToSpeech().speak("Xin lỗi, không thể phát hiện giọng nói của bạn!", false);
                     }
                     break;
                 case START_SPEECH_TIME_COUNT:
-                    timer.schedule(timerTask, 1000);
+                    timer.postDelayed(timerSpeech,MAX_SPEECH_TIME_OUT*1000);
+                    break;
                 case STOP_SPEECH_TIME_COUNT:
-                    timer.cancel();
+                    timer.removeCallbacks(timerSpeech);
                     speechCountTime = MAX_SPEECH_TIME_OUT;
                     break;
-
             }
 
         }
@@ -287,13 +284,14 @@ public class FragmentResult extends Fragment {
      */
     public void finishRecognition() {
         Log.d(LOG_TAG, "stop listener....");
+        stopSpeechTimeCount();
         btnVoice.setVisibility(View.VISIBLE);
         setMarginListResult(37);
         isPlayingRecognition = false;
         recognitionProgressView.stop();
         recognitionProgressView.setVisibility(View.INVISIBLE);
         getMainActivity().getSpeechRecognizerManager().stopListening();
-        stopSpeechTimeCount();
+
     }
 
     private void setMarginListResult(int topMargin) {
