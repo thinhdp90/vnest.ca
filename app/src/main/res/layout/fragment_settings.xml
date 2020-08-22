@@ -14,12 +14,18 @@
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:background="#fff"
-            android:layout_height="?actionBarSize">
+            app:elevation="0dp"
+            android:layout_height="wrap_content">
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 app:title="@string/settings"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="?actionBarSize" />
+            <View
+                android:background="#000"
+                android:alpha="0.08"
+                android:layout_width="match_parent"
+                android:layout_height="1dp" />
         </com.google.android.material.appbar.AppBarLayout>
 
         <LinearLayout

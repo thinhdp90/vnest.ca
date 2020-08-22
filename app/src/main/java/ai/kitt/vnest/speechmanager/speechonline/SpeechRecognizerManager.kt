@@ -50,14 +50,13 @@ class SpeechRecognizerManager(
     }, onErrorTimeOut)
 
     init {
-        speechIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName);
-        speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, Locale.getDefault());
-        speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, Locale.getDefault());
-        speechIntent.putExtra(
-                RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE,
-                Locale.getDefault()
-        );
+        speechIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName)
+        speechIntent.putExtra("android.speech.extra.LANGUAGE_MODEL", "free_form")
+        speechIntent.putExtra("android.speech.extra.LANGUAGE", "vi")
+        speechIntent.putExtra("android.speech.extra.PARTIAL_RESULTS", true)
+        speechIntent.putExtra("android.speech.action.RECOGNIZE_SPEECH", "android.speech.extra.PREFER_OFFLINE")
+        speechIntent.putExtra("android.speech.extras.SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS", timeOut)
+        speechIntent.putExtra("android.speech.extras.SPEECH_INPUT_MINIMUM_LENGTH_MILLIS", 5000)
         speechIntent.putExtra(
                 RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,
                 timeOut

@@ -5,7 +5,7 @@ import android.view.View
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
 
-abstract class BaseFragment(@LayoutRes val resLayout: Int) : Fragment(resLayout) {
+abstract class BaseFragment(@LayoutRes val layoutRes: Int) : Fragment(layoutRes) {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)

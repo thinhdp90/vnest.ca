@@ -31,12 +31,8 @@ class FragmentSettings : BaseFragment(R.layout.fragment_settings) {
 
     private lateinit var binding: FragmentSettingsBinding
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        binding = DataBindingUtil.inflate(inflater, resLayout, container, false)
-        binding.maps.detailText = when (VnestSharePreference.getInstance(requireContext()).mapAppId) {
-            AppUtil.MAPS_NATIVEL_APP_ID -> getString(R.string.maps_navitel_app_name)
-            AppUtil.MAPS_GOOGLE_MAP_APP_ID -> getString(R.string.google_map_app_name)
-            else -> getString(R.string.maps_viet_map_app_name)
-        }
+        binding = DataBindingUtil.inflate(inflater, layoutRes, container, false)
+        setSelectedMaps()
         return binding.root
     }
 
@@ -58,15 +54,19 @@ class FragmentSettings : BaseFragment(R.layout.fragment_settings) {
         }
         viewModel.settingLiveData.observe(viewLifecycleOwner, Observer {
             if(it) {
-                binding.maps.detailText = when (VnestSharePreference.getInstance(requireContext()).mapAppId) {
-                    AppUtil.MAPS_NATIVEL_APP_ID -> getString(R.string.maps_navitel_app_name)
-                    AppUtil.MAPS_GOOGLE_MAP_APP_ID -> getString(R.string.google_map_app_name)
-                    else -> getString(R.string.maps_viet_map_app_name)
-                }
+                setSelectedMaps()
             }
         })
         (requireActivity() as AppCompatActivity).setSupportActionBar(binding.toolbar)
         (requireActivity() as AppCompatActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+
+    private fun setSelectedMaps() {
+        binding.maps.detailText = when (VnestSharePreference.getInstance(requireContext()).mapAppId) {
+            AppUtil.MAPS_NATIVEL_APP_ID -> getString(R.string.maps_navitel_app_name)
+            AppUtil.MAPS_GOOGLE_MAP_APP_ID -> getString(R.string.google_map_app_name)
+            else -> getString(R.string.maps_viet_map_app_name)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

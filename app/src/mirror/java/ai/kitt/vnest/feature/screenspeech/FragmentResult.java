@@ -2,7 +2,9 @@ package ai.kitt.vnest.feature.screenspeech;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.speech.SpeechRecognizer;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,24 +47,31 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
+import java.util.ArrayList;
+import java.util.Objects;
+
 import ai.kitt.snowboy.service.TriggerOfflineService;
 import ai.kitt.vnest.App;
 import ai.kitt.vnest.R;
 import ai.kitt.vnest.databinding.FragmentResultBinding;
 import ai.kitt.vnest.feature.activitymain.MainActivity;
 import ai.kitt.vnest.feature.activitymain.ViewModel;
+import ai.kitt.vnest.feature.screenspeech.adapters.AdapterAddressResult;
+import ai.kitt.vnest.feature.screenspeech.adapters.AdapterAssistantMessage;
 import ai.kitt.vnest.feature.screenspeech.model.ItemAssistant;
-import ai.kitt.vnest.feature.screenspeech.model.ItemListResult;
 import ai.kitt.vnest.feature.screenspeech.model.ResultItem;
-import java.util.ArrayList;
-import java.util.Objects;
 
 public class FragmentResult extends Fragment {
     private final static String LOG_TAG = "Vnest Fragment Result";
+    public final static int SPEECH_TIME_OUT = 101;
+    public final static int START_SPEECH_TIME_COUNT = 102;
+    public final static int STOP_SPEECH_TIME_COUNT = 103;
+    private static int MAX_SPEECH_TIME_OUT = 20;
+
     private RecyclerView mListResult;
     private TextView btnBack;
     private View iconBack;
-    private AdapterResult adapter;
+    private AdapterAssistantMessage adapter;
     private ViewModel viewModel;
     private Button btnVoice;
     private Boolean isStartingRecognitionProgressView = false;
@@ -72,6 +81,39 @@ public class FragmentResult extends Fragment {
     private ExoPlayer exoPlayer;
     private TrackSelector trackSelector;
     private ImageView btnClosePlayerView;
+    public static Boolean isPlayingRecognition = false;
+
+    public Handler timer = new Handler();
+    public Runnable timerSpeech = new Runnable() {
+        @Override
+        public void run() {
+            Message message = new Message();
+            message.what = SPEECH_TIME_OUT;
+            message.setTarget(handlerSpeechRecordTimeManager);
+            message.sendToTarget();
+        }
+    };
+    public Handler handlerSpeechRecordTimeManager = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case SPEECH_TIME_OUT:
+                    if (isPlayingRecognition) {
+                        finishRecognition();
+                        getMainActivity().getTextToSpeech().speak("Xin lỗi, không thể phát hiện giọng nói của bạn!", false);
+                    }
+                    break;
+                case START_SPEECH_TIME_COUNT:
+                    timer.postDelayed(timerSpeech,MAX_SPEECH_TIME_OUT*1000);
+                    break;
+                case STOP_SPEECH_TIME_COUNT:
+                    timer.removeCallbacks(timerSpeech);
+                    break;
+            }
+
+        }
+    };
 
     private FragmentResultBinding binding;
 
@@ -122,7 +164,7 @@ public class FragmentResult extends Fragment {
 
     public void intAction(View view) {
         setUpRecognitionsUi();
-        adapter = new AdapterResult();
+        adapter = new AdapterAssistantMessage();
         mListResult.setAdapter(adapter);
         mListResult.setLayoutManager(new LinearLayoutManager(getContext()));
         btnVoice.setOnClickListener(view1 -> {
@@ -169,7 +211,7 @@ public class FragmentResult extends Fragment {
 //            adapter.addItem(new ItemListResult(pois));
 //            mListResult.scrollToPosition(adapter.getItemCount() - 1);
             showListResult();
-            binding.mRecyclerViewResult.setAdapter(new AdapterResultChild(pois,false));
+            binding.mRecyclerViewResult.setAdapter(new AdapterAddressResult(pois,false));
 
             // listResultAdapter.setVisibility(true);
             //            showListResult();
@@ -253,11 +295,21 @@ public class FragmentResult extends Fragment {
         getMainActivity().getSpeechRecognizerManager().stopListening();
     }
 
+    public void startSpeechCountDown() {
+        Message message = new Message();
+        message.what = START_SPEECH_TIME_COUNT;
+        message.setTarget(handlerSpeechRecordTimeManager);
+        message.sendToTarget();
+    }
+    public void stopSpeechTimeCount() {
+        Message message = new Message();
+        message.what = STOP_SPEECH_TIME_COUNT;
+        message.setTarget(handlerSpeechRecordTimeManager);
+        message.sendToTarget();
+    }
+
+
     private void setMarginListResult(int topMargin) {
-//        ConstraintLayout.LayoutParams layoutParams = (ConstraintLayout.LayoutParams) mListResult.getLayoutParams();
-//        layoutParams.topMargin = (int) (getResources().getDisplayMetrics().scaledDensity * topMargin);
-//        mListResult.scrollToPosition(adapter.getItemCount() - 1);
-//        mListResult.setLayoutParams(layoutParams);
     }
 
     public MainActivity getMainActivity() {
@@ -284,24 +336,6 @@ public class FragmentResult extends Fragment {
         constraintSet.applyTo((ConstraintLayout) binding.getRoot());
     }
 
-//    private void initializePlayer() {
-//
-//        playerView.requestFocus();
-//
-//        AdaptiveTrackSelection.Factory videoTrackSelectionFactory = new AdaptiveTrackSelection.Factory();
-//
-//        trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
-////        lastSeenTrackGroupArray = null;
-//
-//        exoPlayer = ExoPlayerFactory.newSimpleInstance(requireContext(), trackSelector);
-//
-//        playerView.setPlayer(exoPlayer);
-//        exoPlayer.setPlayWhenReady(true);
-//        MediaSource mediaSource = new ProgressiveMediaSource.Factory(mediaSourceFactory)
-//                .createMediaSource(Uri.parse("https://www.youtube.com/watch?v=xg4S67ZvsRs"));
-//        exoPlayer.prepare(mediaSource);
-//
-//    }
 
 
     @Override
@@ -319,7 +353,6 @@ public class FragmentResult extends Fragment {
                     new DefaultLoadControl());
             playerView.setPlayer(exoPlayer);
             exoPlayer.setPlayWhenReady(true);
-//            exoPlayer.seekTo(currentWindow, playbackPosition);
         }
     }
 

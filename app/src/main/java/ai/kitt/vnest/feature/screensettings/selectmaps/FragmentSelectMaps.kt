@@ -3,15 +3,17 @@ package ai.kitt.vnest.feature.screensettings.selectmaps
 import ai.kitt.vnest.R
 import ai.kitt.vnest.base.BaseFragment
 import ai.kitt.vnest.basedata.database.sharepreference.VnestSharePreference
+import ai.kitt.vnest.databinding.FragmentMapsBinding
 import ai.kitt.vnest.feature.screensettings.FragmentSettings
 import ai.kitt.vnest.feature.screensettings.SettingsViewModel
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.View
+import android.os.Bundle
+import android.view.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.fragment_maps.view.*
+import kotlinx.android.synthetic.main.toolbar.view.*
 
 class FragmentSelectMaps : BaseFragment(R.layout.fragment_maps) {
 
@@ -24,13 +26,21 @@ class FragmentSelectMaps : BaseFragment(R.layout.fragment_maps) {
     }
     private val viewModel by lazy { ViewModelProvider(requireActivity()).get(SettingsViewModel::class.java) }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val binding = DataBindingUtil.inflate<FragmentMapsBinding>(inflater,layoutRes,container,false)
+        return binding.root
+    }
     override fun initView(view: View) {
         view.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         view.recyclerView.adapter = adapter
     }
 
     override fun initAction(view: View) {
-        (requireActivity() as AppCompatActivity).setSupportActionBar(view.toolbar)
+        (requireActivity() as AppCompatActivity).setSupportActionBar(view.appbar.toolbar)
         (requireActivity() as AppCompatActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
