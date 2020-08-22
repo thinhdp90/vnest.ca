@@ -16,9 +16,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
+import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -41,41 +40,45 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
+import java.util.ArrayList;
+import java.util.Objects;
+
 import ai.kitt.snowboy.service.TriggerOfflineService;
 import ai.kitt.vnest.App;
 import ai.kitt.vnest.R;
+import ai.kitt.vnest.base.BaseFragment;
+import ai.kitt.vnest.databinding.FragmentResultBinding;
 import ai.kitt.vnest.feature.activitymain.MainActivity;
 import ai.kitt.vnest.feature.activitymain.ViewModel;
 import ai.kitt.vnest.feature.screenspeech.adapters.AdapterAssistantMessage;
 import ai.kitt.vnest.feature.screenspeech.model.ItemAssistant;
-import ai.kitt.vnest.feature.screenspeech.model.ItemListResult;
 import ai.kitt.vnest.feature.screenspeech.model.ResultItem;
 
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
+abstract public class BaseFragmentResult extends BaseFragment {
+    BaseFragmentResult() {
+        super(R.layout.fragment_result);
+    }
 
-public class FragmentResult extends Fragment {
-    private final static String LOG_TAG = "Vnest Fragment Result";
+    protected final static String LOG_TAG = "Vnest Fragment Result";
     public final static int SPEECH_TIME_OUT = 101;
     public final static int START_SPEECH_TIME_COUNT = 102;
     public final static int STOP_SPEECH_TIME_COUNT = 103;
-    private static int MAX_SPEECH_TIME_OUT = 20;
-    private int speechCountTime = MAX_SPEECH_TIME_OUT;
-    private RecyclerView mListResult;
-    private TextView btnBack;
-    private View iconBack;
-    private AdapterAssistantMessage adapter;
-    private ViewModel viewModel;
-    public Button btnVoice;
+    protected static int MAX_SPEECH_TIME_OUT = 20;
+
+    protected RecyclerView mListResult;
+    protected TextView btnBack;
+    protected View iconBack;
+    protected AdapterAssistantMessage adapter;
+    protected ViewModel viewModel;
+    protected Button btnVoice;
     public static Boolean isPlayingRecognition = false;
-    private RecognitionProgressView recognitionProgressView;
-    private DataSource.Factory mediaSourceFactory;
-    private PlayerView playerView;
-    private ExoPlayer exoPlayer;
-    private TrackSelector trackSelector;
-    private ImageView btnClosePlayerView;
+    protected RecognitionProgressView recognitionProgressView;
+    protected DataSource.Factory mediaSourceFactory;
+    protected PlayerView playerView;
+    protected ExoPlayer exoPlayer;
+    protected TrackSelector trackSelector;
+    protected ImageView btnClosePlayerView;
+
     public Handler timer = new Handler();
     public Runnable timerSpeech = this::notifySpeechTimeOut;
     public Handler handlerSpeechRecordTimeManager = new Handler(Looper.getMainLooper()) {
@@ -90,16 +93,17 @@ public class FragmentResult extends Fragment {
                     }
                     break;
                 case START_SPEECH_TIME_COUNT:
-                    timer.postDelayed(timerSpeech, MAX_SPEECH_TIME_OUT * 1000);
+                    timer.postDelayed(timerSpeech,MAX_SPEECH_TIME_OUT*1000);
                     break;
                 case STOP_SPEECH_TIME_COUNT:
                     timer.removeCallbacks(timerSpeech);
-                    speechCountTime = MAX_SPEECH_TIME_OUT;
                     break;
             }
 
         }
     };
+
+    protected FragmentResultBinding binding;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -110,24 +114,9 @@ public class FragmentResult extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_result, container, false);
-        return view;
+        binding = DataBindingUtil.inflate(inflater,R.layout.fragment_result,container,false);
+        return binding.getRoot();
     }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        initView(view);
-        intAction(view);
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-    }
-
-
     @Override
     public void onStart() {
         super.onStart();
@@ -145,7 +134,7 @@ public class FragmentResult extends Fragment {
         initRecognitionProgressView();
     }
 
-    public void intAction(View view) {
+    public void initAction(View view) {
         setUpRecognitionsUi();
         adapter = new AdapterAssistantMessage();
         mListResult.setAdapter(adapter);
@@ -154,7 +143,7 @@ public class FragmentResult extends Fragment {
             if (isPlayingRecognition) {
                 finishRecognition();
             } else {
-                if (App.isActivated) {
+                if(App.isActivated) {
                     startRecognition();
                 }
             }
@@ -175,6 +164,7 @@ public class FragmentResult extends Fragment {
             btnBack.performClick();
         });
 
+        onPoisResult();
         viewModel.getListMessLiveData().observe(getViewLifecycleOwner(), list -> {
             ArrayList<ResultItem> listResultItem = new ArrayList<>();
             for (int i = 0; i < list.size(); i++) {
@@ -183,6 +173,7 @@ public class FragmentResult extends Fragment {
             adapter.setListItem(listResultItem);
             mListResult.scrollToPosition(adapter.getItemCount() - 1);
         });
+
         viewModel.getLiveDataProcessText().observe(getViewLifecycleOwner(), message -> {
             viewModel.saveMessage(message);
             adapter.addItem(new ItemAssistant(message.getMessage(), message.isSender()));
@@ -190,14 +181,11 @@ public class FragmentResult extends Fragment {
             finishRecognition();
         });
 
-        viewModel.getLiveListPoi().observe(getViewLifecycleOwner(), pois -> {
-            adapter.addItem(new ItemListResult(pois));
-            mListResult.scrollToPosition(adapter.getItemCount() - 1);
-        });
+
         viewModel.getLiveDataStartRecord().observe(getViewLifecycleOwner(), aBoolean -> {
             if (aBoolean == null) return;
             if (aBoolean) {
-                if (App.isActivated) {
+                if(App.isActivated) {
                     startRecognition();
                 }
             } else {
@@ -209,15 +197,18 @@ public class FragmentResult extends Fragment {
 
         viewModel.getLiveDataOpenVTV().observe(getViewLifecycleOwner(), this::playVideo);
         viewModel.getLiveDataRebindRecognitionsView().observe(getViewLifecycleOwner(), aBoolean -> {
-            if (aBoolean == null) return;
-            if (aBoolean) {
+            if(aBoolean == null) return;
+            if(aBoolean) {
                 setUpRecognitionsUi();
             }
             viewModel.getLiveDataRebindRecognitionsView().postValue(null);
         });
     }
+    public abstract void onPoisResult();
+    public abstract void showListResult();
+    public abstract void hideListResult();
 
-    private void setUpRecognitionsUi() {
+    protected void setUpRecognitionsUi() {
         recognitionProgressView.setOnClickListener(view1 -> {
             finishRecognition();
         });
@@ -225,7 +216,8 @@ public class FragmentResult extends Fragment {
         recognitionProgressView.setRecognitionListener(getMainActivity().getSpeechRecognizerManager().getSpeechListener());
     }
 
-    private void initRecognitionProgressView() {
+    protected void initRecognitionProgressView() {
+
         int[] colors = {
                 ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color1),
                 ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color2),
@@ -246,16 +238,34 @@ public class FragmentResult extends Fragment {
 
     }
 
-    public void startRecognition() {
+
+    protected void startRecognition() {
         Log.d(LOG_TAG, "start listener....");
         TriggerOfflineService.stopService(requireContext());
+        hideListResult();
         isPlayingRecognition = true;
-        btnVoice.setVisibility(View.GONE);
+        btnVoice.setVisibility(View.INVISIBLE);
         setMarginListResult(120);
         recognitionProgressView.play();
         recognitionProgressView.setVisibility(View.VISIBLE);
         getMainActivity().getSpeechRecognizerManager().startListening();
         startSpeechCountDown();
+    }
+
+    /**
+     * Finish Speech Recognition
+     */
+    public void finishRecognition() {
+        stopSpeechTimeCount();
+        btnVoice.setVisibility(View.VISIBLE);
+        setMarginListResult(37);
+        isPlayingRecognition = false;
+        recognitionProgressView.stop();
+        recognitionProgressView.setVisibility(View.INVISIBLE);
+        getMainActivity().getSpeechRecognizerManager().stopListening();
+    }
+    public MainActivity getMainActivity() {
+        return (MainActivity) getActivity();
     }
 
     public void startSpeechCountDown() {
@@ -264,7 +274,6 @@ public class FragmentResult extends Fragment {
         message.setTarget(handlerSpeechRecordTimeManager);
         message.sendToTarget();
     }
-
     public void stopSpeechTimeCount() {
         Message message = new Message();
         message.what = STOP_SPEECH_TIME_COUNT;
@@ -279,39 +288,10 @@ public class FragmentResult extends Fragment {
         message.sendToTarget();
     }
 
-    /**
-     * Finish Speech Recognition
-     */
-    public void finishRecognition() {
-        Log.d(LOG_TAG, "stop listener....");
-        btnVoice.setVisibility(View.VISIBLE);
-        setMarginListResult(37);
-        isPlayingRecognition = false;
-        recognitionProgressView.setVisibility(View.INVISIBLE);
-        recognitionProgressView.stop();
-        getMainActivity().getSpeechRecognizerManager().stopListening();
-        stopSpeechTimeCount();
+    protected void setMarginListResult(int topMargin) {
     }
 
-    private void setMarginListResult(int topMargin) {
-        ConstraintLayout.LayoutParams layoutParams = (ConstraintLayout.LayoutParams) mListResult.getLayoutParams();
-        layoutParams.topMargin = (int) (getResources().getDisplayMetrics().scaledDensity * topMargin);
-        mListResult.scrollToPosition(adapter.getItemCount() - 1);
-        mListResult.setLayoutParams(layoutParams);
-    }
-
-    public MainActivity getMainActivity() {
-        return (MainActivity) getActivity();
-    }
-
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-    }
-
-    private void initializePlayer() {
+    protected void initializePlayer() {
         if (exoPlayer == null) {
             exoPlayer = ExoPlayerFactory.newSimpleInstance(
                     requireContext(),
@@ -323,7 +303,7 @@ public class FragmentResult extends Fragment {
         }
     }
 
-    private void playVideo(String url) {
+    protected void playVideo(String url) {
         if (url == null) return;
         if (url.equalsIgnoreCase("-1")) {
             btnClosePlayerView.performClick();
@@ -331,22 +311,29 @@ public class FragmentResult extends Fragment {
         }
         viewModel.getLiveDataOpenVTV().postValue(null);
         finishRecognition();
-//        playerView.setVisibility(View.VISIBLE);
-        btnBack.setVisibility(View.INVISIBLE);
-        iconBack.setVisibility(View.INVISIBLE);
-        btnVoice.setVisibility(View.GONE);
-//        recognitionProgressView.setVisibility(View.INVISIBLE);
-//        btnClosePlayerView.setVisibility(View.VISIBLE);
-//        MediaSource mediaSource = buildMediaSource(Uri.parse(url));
-//        exoPlayer.prepare(mediaSource, true, false);
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        Uri videoUri = Uri.parse(url);
-        intent.setDataAndType(videoUri, "application/x-mpegURL");
-        intent.setPackage("com.mxtech.videoplayer.pro");
-        startActivity(intent);
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            Uri videoUri = Uri.parse(url);
+            intent.setDataAndType( videoUri, "application/x-mpegURL" );
+            intent.setPackage( "com.mxtech.videoplayer.pro" );
+            if(intent.resolveActivity(requireContext().getPackageManager()) ==  null) {
+                intent.setPackage( "com.mxtech.videoplayer.ad" );
+            }
+            startActivity( intent );
+        }catch (Exception ex) {
+            btnBack.setVisibility(View.INVISIBLE);
+            iconBack.setVisibility(View.INVISIBLE);
+            btnVoice.setVisibility(View.GONE);
+            playerView.setVisibility(View.VISIBLE);
+            recognitionProgressView.setVisibility(View.INVISIBLE);
+            btnClosePlayerView.setVisibility(View.VISIBLE);
+            MediaSource mediaSource = buildMediaSource(Uri.parse(url));
+            exoPlayer.prepare(mediaSource, true, false);
+        }
+
     }
 
-    private MediaSource buildMediaSource(@NonNull Uri uri) {
+    protected MediaSource buildMediaSource(@NonNull Uri uri) {
         String userAgent = "exoplayer-vnest";
         if (Objects.requireNonNull(uri.getLastPathSegment()).contains("mp3") || uri.getLastPathSegment().contains("mp4")) {
             return new ExtractorMediaSource.Factory(new DefaultHttpDataSourceFactory(userAgent))
@@ -361,6 +348,4 @@ public class FragmentResult extends Fragment {
             return new DashMediaSource.Factory(dashChunkSourceFactory, manifestDataSourceFactory).createMediaSource(uri);
         }
     }
-
-
 }

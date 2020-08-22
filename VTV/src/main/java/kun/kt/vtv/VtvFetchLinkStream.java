@@ -61,7 +61,7 @@ public class VtvFetchLinkStream extends AsyncTask<Void, Stream, ArrayList<Stream
     protected void onPostExecute(ArrayList<Stream> streams) {
         super.onPostExecute(streams);
         if (streams.size() > 0) {
-            onSuccessListener.onGetSuccess(streams.get(0));
+            onSuccessListener.onGetSuccess(streams.get(streams.size() - 1));
         } else {
 
         }

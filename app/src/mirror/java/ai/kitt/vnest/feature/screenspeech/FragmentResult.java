@@ -1,212 +1,33 @@
 package ai.kitt.vnest.feature.screenspeech;
 
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.AnticipateOvershootInterpolator;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
-import androidx.core.content.ContextCompat;
-import androidx.databinding.DataBindingUtil;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.transition.ChangeBounds;
 import androidx.transition.Transition;
 import androidx.transition.TransitionManager;
 
-import com.github.zagum.speechrecognitionview.RecognitionProgressView;
-import com.google.android.exoplayer2.DefaultLoadControl;
-import com.google.android.exoplayer2.DefaultRenderersFactory;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.source.ExtractorMediaSource;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.dash.DashMediaSource;
-import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
-import com.google.android.exoplayer2.source.hls.HlsMediaSource;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelector;
-import com.google.android.exoplayer2.ui.PlayerView;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
-import com.google.android.exoplayer2.util.Util;
-
-import java.util.ArrayList;
-import java.util.Objects;
-
-import ai.kitt.snowboy.service.TriggerOfflineService;
-import ai.kitt.vnest.App;
 import ai.kitt.vnest.R;
-import ai.kitt.vnest.databinding.FragmentResultBinding;
 import ai.kitt.vnest.feature.activitymain.MainActivity;
-import ai.kitt.vnest.feature.activitymain.ViewModel;
 import ai.kitt.vnest.feature.screenspeech.adapters.AdapterAddressResult;
-import ai.kitt.vnest.feature.screenspeech.adapters.AdapterAssistantMessage;
-import ai.kitt.vnest.feature.screenspeech.model.ItemAssistant;
-import ai.kitt.vnest.feature.screenspeech.model.ResultItem;
 
-public class FragmentResult extends Fragment {
-    private final static String LOG_TAG = "Vnest Fragment Result";
-    public final static int SPEECH_TIME_OUT = 101;
-    public final static int START_SPEECH_TIME_COUNT = 102;
-    public final static int STOP_SPEECH_TIME_COUNT = 103;
-    private static int MAX_SPEECH_TIME_OUT = 20;
+public class FragmentResult extends BaseFragmentResult {
 
-    private RecyclerView mListResult;
-    private TextView btnBack;
-    private View iconBack;
-    private AdapterAssistantMessage adapter;
-    private ViewModel viewModel;
-    private Button btnVoice;
-    private Boolean isStartingRecognitionProgressView = false;
-    private RecognitionProgressView recognitionProgressView;
-    private DataSource.Factory mediaSourceFactory;
-    private PlayerView playerView;
-    private ExoPlayer exoPlayer;
-    private TrackSelector trackSelector;
-    private ImageView btnClosePlayerView;
-    public static Boolean isPlayingRecognition = false;
-
-    public Handler timer = new Handler();
-    public Runnable timerSpeech = new Runnable() {
-        @Override
-        public void run() {
-            Message message = new Message();
-            message.what = SPEECH_TIME_OUT;
-            message.setTarget(handlerSpeechRecordTimeManager);
-            message.sendToTarget();
-        }
-    };
-    public Handler handlerSpeechRecordTimeManager = new Handler(Looper.getMainLooper()) {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case SPEECH_TIME_OUT:
-                    if (isPlayingRecognition) {
-                        finishRecognition();
-                        getMainActivity().getTextToSpeech().speak("Xin lỗi, không thể phát hiện giọng nói của bạn!", false);
-                    }
-                    break;
-                case START_SPEECH_TIME_COUNT:
-                    timer.postDelayed(timerSpeech,MAX_SPEECH_TIME_OUT*1000);
-                    break;
-                case STOP_SPEECH_TIME_COUNT:
-                    timer.removeCallbacks(timerSpeech);
-                    break;
-            }
-
-        }
-    };
-
-    private FragmentResultBinding binding;
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        viewModel = new ViewModelProvider(Objects.requireNonNull(getActivity())).get(ViewModel.class);
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = DataBindingUtil.inflate(inflater,R.layout.fragment_result,container,false);
-        return binding.getRoot();
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        initView(view);
-        intAction(view);
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
+    protected void setMarginListResult(int topMargin) {
     }
 
 
     @Override
-    public void onStart() {
-        super.onStart();
-        initializePlayer();
-    }
-
     public void initView(View view) {
-        btnBack = view.findViewById(R.id.btn_back);
-        iconBack = view.findViewById(R.id.icon_back);
-        mListResult = view.findViewById(R.id.mRecyclerView);
-        btnVoice = view.findViewById(R.id.btnVoice);
-        recognitionProgressView = view.findViewById(R.id.recognition_view);
-        playerView = view.findViewById(R.id.playerView);
-        btnClosePlayerView = view.findViewById(R.id.btnClosePlayerView);
+        super.initView(view);
         binding.mRecyclerViewResult.setLayoutManager(new GridLayoutManager(requireContext(),2));
-        initRecognitionProgressView();
     }
 
-    public void intAction(View view) {
-        setUpRecognitionsUi();
-        adapter = new AdapterAssistantMessage();
-        mListResult.setAdapter(adapter);
-        mListResult.setLayoutManager(new LinearLayoutManager(getContext()));
-        btnVoice.setOnClickListener(view1 -> {
-            if (isStartingRecognitionProgressView) {
-                finishRecognition();
-            } else {
-                if(App.isActivated) {
-                    startRecognition();
-                }
-            }
-        });
-        btnClosePlayerView.setOnClickListener(v -> {
-            btnClosePlayerView.setVisibility(View.GONE);
-            playerView.setVisibility(View.GONE);
-            exoPlayer.stop();
-            btnBack.setVisibility(View.VISIBLE);
-            iconBack.setVisibility(View.VISIBLE);
-            btnVoice.setVisibility(View.VISIBLE);
-            recognitionProgressView.setVisibility(View.INVISIBLE);
-        });
-        btnBack.setOnClickListener(view1 -> {
-            Objects.requireNonNull(getActivity()).onBackPressed();
-        });
-        iconBack.setOnClickListener(v -> {
-            btnBack.performClick();
-        });
-
-        viewModel.getListMessLiveData().observe(getViewLifecycleOwner(), list -> {
-            ArrayList<ResultItem> listResultItem = new ArrayList<>();
-            for (int i = 0; i < list.size(); i++) {
-                listResultItem.add(new ItemAssistant(list.get(i).getMessage(), list.get(i).isSender()));
-            }
-            adapter.setListItem(listResultItem);
-            mListResult.scrollToPosition(adapter.getItemCount() - 1);
-        });
-        viewModel.getLiveDataProcessText().observe(getViewLifecycleOwner(), message -> {
-            viewModel.saveMessage(message);
-            adapter.addItem(new ItemAssistant(message.getMessage(), message.isSender()));
-            mListResult.scrollToPosition(adapter.getItemCount() - 1);
-            finishRecognition();
-        });
-
+    @Override
+    public void onPoisResult() {
         viewModel.getLiveListPoi().observe(getViewLifecycleOwner(), pois -> {
 //            adapter.addItem(new ItemListResult(pois));
 //            mListResult.scrollToPosition(adapter.getItemCount() - 1);
@@ -217,116 +38,20 @@ public class FragmentResult extends Fragment {
             //            showListResult();
             // listResultAdapter.refresh(pois);
         });
-        viewModel.getLiveDataStartRecord().observe(getViewLifecycleOwner(), aBoolean -> {
-            if (aBoolean == null) return;
-            if (aBoolean) {
-                if(App.isActivated) {
-                    startRecognition();
-                }
-            } else {
-                finishRecognition();
-            }
-            viewModel.getLiveDataStartRecord().postValue(null);
-        });
-        mediaSourceFactory = new DefaultDataSourceFactory(requireContext(), Util.getUserAgent(requireContext(), "vnest"));
-
-        viewModel.getLiveDataOpenVTV().observe(getViewLifecycleOwner(), this::playVideo);
-        viewModel.getLiveDataRebindRecognitionsView().observe(getViewLifecycleOwner(), aBoolean -> {
-            if(aBoolean == null) return;
-            if(aBoolean) {
-              setUpRecognitionsUi();
-            }
-            viewModel.getLiveDataRebindRecognitionsView().postValue(null);
-        });
     }
 
-    private void setUpRecognitionsUi() {
-        recognitionProgressView.setOnClickListener(view1 -> {
-            finishRecognition();
-        });
-        recognitionProgressView.setSpeechRecognizer(getMainActivity().getSpeechRecognizerManager().getSpeechRecognizer());
-        recognitionProgressView.setRecognitionListener(getMainActivity().getSpeechRecognizerManager().getSpeechListener());
-    }
-
-    private void initRecognitionProgressView() {
-
-        int[] colors = {
-                ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color1),
-                ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color2),
-                ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color3),
-                ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color4),
-                ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color5)
-        };
-
-        int[] heights = {60, 76, 58, 80, 55};
-
-        recognitionProgressView.setColors(colors);
-        recognitionProgressView.setBarMaxHeightsInDp(heights);
-        recognitionProgressView.setCircleRadiusInDp(6); // kich thuoc cham tron
-        recognitionProgressView.setSpacingInDp(2); // khoang cach giua cac cham tron
-        recognitionProgressView.setIdleStateAmplitudeInDp(8); // bien do dao dong cua cham tron
-        recognitionProgressView.setRotationRadiusInDp(0); // kich thuoc vong quay cua cham tron
-        recognitionProgressView.play();
-
-    }
-
-    private void startRecognition() {
-        Log.d(LOG_TAG, "start listener....");
-        TriggerOfflineService.stopService(requireContext());
-        hideListResult();
-        isStartingRecognitionProgressView = true;
-        btnVoice.setVisibility(View.INVISIBLE);
-        setMarginListResult(120);
-        recognitionProgressView.play();
-        recognitionProgressView.setVisibility(View.VISIBLE);
-        getMainActivity().getSpeechRecognizerManager().startListening();
-    }
-
-    /**
-     * Finish Speech Recognition
-     */
-    public void finishRecognition() {
-        Log.d(LOG_TAG, "stop listener....");
-        btnVoice.setVisibility(View.VISIBLE);
-        setMarginListResult(37);
-        isStartingRecognitionProgressView = false;
-        recognitionProgressView.stop();
-        recognitionProgressView.setVisibility(View.INVISIBLE);
-        getMainActivity().getSpeechRecognizerManager().stopListening();
-    }
-
-    public void startSpeechCountDown() {
-        Message message = new Message();
-        message.what = START_SPEECH_TIME_COUNT;
-        message.setTarget(handlerSpeechRecordTimeManager);
-        message.sendToTarget();
-    }
-    public void stopSpeechTimeCount() {
-        Message message = new Message();
-        message.what = STOP_SPEECH_TIME_COUNT;
-        message.setTarget(handlerSpeechRecordTimeManager);
-        message.sendToTarget();
-    }
-
-
-    private void setMarginListResult(int topMargin) {
-    }
-
-    public MainActivity getMainActivity() {
-        return (MainActivity) getActivity();
-    }
-
-    private void showListResult(){
+    @Override
+    public void showListResult(){
         ConstraintSet constraintSet = new ConstraintSet();
         constraintSet.clone(requireContext(), R.layout.fragment_result_state_end);
         Transition transition =(Transition) new ChangeBounds();
         transition.setInterpolator(new AnticipateOvershootInterpolator(1.0f));
         transition.setDuration(1200);
-
         TransitionManager.beginDelayedTransition(((ConstraintLayout) binding.getRoot()), transition);
         constraintSet.applyTo((ConstraintLayout) binding.getRoot());
     }
-    private void hideListResult(){
+    @Override
+    public void hideListResult(){
         ConstraintSet constraintSet = new ConstraintSet();
         constraintSet.clone(requireContext(), R.layout.fragment_result_state_start);
         Transition transition =(Transition) new ChangeBounds();
@@ -335,60 +60,5 @@ public class FragmentResult extends Fragment {
         TransitionManager.beginDelayedTransition(((ConstraintLayout) binding.getRoot()), transition);
         constraintSet.applyTo((ConstraintLayout) binding.getRoot());
     }
-
-
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-    }
-
-    private void initializePlayer() {
-        if (exoPlayer == null) {
-            exoPlayer = ExoPlayerFactory.newSimpleInstance(
-                    requireContext(),
-                    new DefaultRenderersFactory(requireContext()),
-                    new DefaultTrackSelector(),
-                    new DefaultLoadControl());
-            playerView.setPlayer(exoPlayer);
-            exoPlayer.setPlayWhenReady(true);
-        }
-    }
-
-    private void playVideo(String url) {
-        if (url == null) return;
-        if(url.equalsIgnoreCase("-1")) {
-            btnClosePlayerView.performClick();
-            return;
-        }
-        viewModel.getLiveDataOpenVTV().postValue(null);
-        finishRecognition();
-        playerView.setVisibility(View.VISIBLE);
-        btnBack.setVisibility(View.INVISIBLE);
-        iconBack.setVisibility(View.INVISIBLE);
-        btnVoice.setVisibility(View.GONE);
-        recognitionProgressView.setVisibility(View.INVISIBLE);
-        btnClosePlayerView.setVisibility(View.VISIBLE);
-        MediaSource mediaSource = buildMediaSource(Uri.parse(url));
-        exoPlayer.prepare(mediaSource, true, false);
-    }
-
-    private MediaSource buildMediaSource(@NonNull Uri uri) {
-        String userAgent = "exoplayer-vnest";
-        if (Objects.requireNonNull(uri.getLastPathSegment()).contains("mp3") || uri.getLastPathSegment().contains("mp4")) {
-            return new ExtractorMediaSource.Factory(new DefaultHttpDataSourceFactory(userAgent))
-                    .createMediaSource(uri);
-        } else if (uri.getLastPathSegment().contains("m3u8")) {
-            return new HlsMediaSource.Factory(new DefaultHttpDataSourceFactory(userAgent))
-                    .createMediaSource(uri);
-        } else {
-            DefaultDashChunkSource.Factory dashChunkSourceFactory = new DefaultDashChunkSource.Factory(
-                    new DefaultHttpDataSourceFactory(userAgent));
-            DefaultHttpDataSourceFactory manifestDataSourceFactory = new DefaultHttpDataSourceFactory(userAgent);
-            return new DashMediaSource.Factory(dashChunkSourceFactory, manifestDataSourceFactory).createMediaSource(uri);
-        }
-    }
-
 
 }

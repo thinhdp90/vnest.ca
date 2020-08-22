@@ -59,7 +59,7 @@ class SpeechRecognitionListener(
 
     override fun onPartialResults(partialResults: Bundle?) {
 //        onMuteVolume(false)
-        Log.e("onPartialResults", "onPartialResults")
+        val text = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
         if (partialResults != null) {
             val texts = partialResults.getStringArrayList("android.speech.extra.UNSTABLE_TEXT")
             texts?.let { mListener.onStreamResult(it) }

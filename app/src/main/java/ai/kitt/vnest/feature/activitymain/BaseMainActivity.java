@@ -191,7 +191,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
     protected long processTime = 0;
     public static boolean isExcecuteText = false;
     protected Gson gson = new GsonBuilder().disableHtmlEscaping().create();
-    private Boolean isStartRecognizer;
+    protected Boolean isStartRecognizer;
     public DownLoadBroadCast downLoadBroadCast;
     private TriggerBroadCast triggerBroadCast;
 
@@ -207,11 +207,12 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        initAIMasterService();
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         viewModel = new ViewModelProvider(this, new ViewModelFactory(this)).get(ViewModel.class);
+
         if (checkPermission()) {
             initIfPermissionGranted();
-            initAIMasterService();
         } else {
             requestPermission();
         }
@@ -234,7 +235,9 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
     }
 
     protected abstract void initView();
+
     protected abstract void initAction();
+
     private void initBaseAction() {
         sendCarInfo();
         initSpeechRecognizerManager();
@@ -260,7 +263,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
         if (downloadDialog == null) {
             downloadDialog = new ProgressDialog(this);
             downloadDialog.setMax(100);
-            downloadDialog.setMessage("Downloading..");
+            downloadDialog.setMessage("Downloading...");
             downloadDialog.setCancelable(false);
             downloadDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         }
@@ -283,7 +286,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
                         textSpeech = KEY_GASOLINE_HISTORY;
                         break;
                     case 3:
-                        if(mDrawerLayout !=null) {
+                        if (mDrawerLayout != null) {
                             mDrawerLayout.closeDrawer(Gravity.LEFT);
                         }
                         Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentSettings.TAG);
@@ -302,9 +305,10 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
                     sendMessage(textSpeech, true);
                     processing_text(textSpeech, true);
                     startResultFragment();
-                    if(mDrawerLayout !=null) {
+                    if (mDrawerLayout != null) {
                         mDrawerLayout.closeDrawer(Gravity.LEFT);
-                    }                }
+                    }
+                }
             } catch (Exception e) {
                 Log.e(LOG_TAG, e.getMessage(), e);
             }
@@ -374,34 +378,39 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
     protected void initSpeechRecognizerManager() {
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this, ComponentName.unflattenFromString("com.google.android.googlequicksearchbox/com.google.android.voicesearch.serviceapi.GoogleRecognitionService"));
         speechRecognizerManager = SpeechRecognizerManager.getInstance(this, new OnResultReady() {
-            @Override
-            public void onResults(@NotNull ArrayList<String> results) {
-                if (isExcecuteText) {
-                    return;
-                }
-                speechRecognizerManager.muteVolume(false);
-                finishRecognition();
-                speechRecognizerManager.stopListening();
-                String text = results.get(0);
-                isExcecuteText = true;
-                sendMessage(text, true);
-                processing_text(text, false);
-                Log.d(LOG_TAG, "onResults: " + text);
-            }
+                    @Override
+                    public void onResults(@NotNull ArrayList<String> results) {
+                        if (isExcecuteText) {
+                            return;
+                        }
+                        speechRecognizerManager.muteVolume(false);
+                        finishRecognition();
+                        speechRecognizerManager.stopListening();
+                        String text = results.get(0);
+                        isExcecuteText = true;
+                        sendMessage(text, true);
+                        processing_text(text, false);
+                        Log.d(LOG_TAG, "onResults: " + text);
+                    }
 
-            @Override
-            public void onStreamResult(@NotNull ArrayList<String> partialResults) {
+                    @Override
+                    public void onStreamResult(@NotNull ArrayList<String> partialResults) {
+                        for (String st : partialResults) {
+                            Log.e("PartialResults", st);
+                        }
 
-            }
-        }, speechRecognizer, () -> viewModel.getLiveDataRebindRecognitionsView().postValue(true),() -> {
-            try {
-                FragmentResult fragmentResult = (FragmentResult) getSupportFragmentManager().findFragmentByTag(FragmentResult.class.getName());
-                fragmentResult.stopSpeechTimeCount();
-            }catch (Exception e) {
-                Log.e("Error", e.getMessage(), e);
-            }
+                    }
+                }, speechRecognizer,
+                () -> viewModel.getLiveDataRebindRecognitionsView().postValue(true),
+                () -> {
+                    try {
+                        FragmentResult fragmentResult = (FragmentResult) getSupportFragmentManager().findFragmentByTag(FragmentResult.class.getName());
+                        fragmentResult.notifySpeechTimeOut();
+                    } catch (Exception e) {
+                        Log.e("Error", e.getMessage(), e);
+                    }
 
-        });
+                });
     }
 
     public void finishRecognition() {
@@ -737,7 +746,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
             longitude = location.getLongitude();
         }
 
-        Log.d("onLocationChanged", latitude + " " + longitude);
+        Log.e("onLocationChanged", latitude + " " + longitude);
     }
 
     @Override
@@ -1022,7 +1031,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
             try {
                 FragmentResult fragmentResult = (FragmentResult) getSupportFragmentManager().findFragmentByTag(FragmentResult.class.getName());
                 fragmentResult.stopSpeechTimeCount();
-            }catch (Exception e) {
+            } catch (Exception e) {
                 Log.e("Error", e.getMessage(), e);
             }
         }
@@ -1037,7 +1046,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
         intent.setAction(TriggerBroadCast.ACTION_RESTART_SERVICE);
         sendBroadcast(intent);
         super.onDestroy();
-        if(textToSpeech!=null) {
+        if (textToSpeech != null) {
             textToSpeech.shutDown();
             textToSpeech = null;
         }

@@ -26,10 +26,6 @@ class FragmentSelectMaps : BaseFragment(R.layout.fragment_maps) {
     }
     private val viewModel by lazy { ViewModelProvider(requireActivity()).get(SettingsViewModel::class.java) }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val binding = DataBindingUtil.inflate<FragmentMapsBinding>(inflater,layoutRes,container,false)
         return binding.root
