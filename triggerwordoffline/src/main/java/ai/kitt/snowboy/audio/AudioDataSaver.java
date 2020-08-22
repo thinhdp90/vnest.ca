@@ -76,8 +76,8 @@ public class AudioDataSaver implements AudioDataReceivedListener {
                     start();
                     recordingFileSizeCounterInBytes = 0;
                 }
-                dataOutputStreamInstance.write(data, 0, length);
-                recordingFileSizeCounterInBytes += length;
+//                dataOutputStreamInstance.write(data, 0, length);
+//                recordingFileSizeCounterInBytes += length;
             }
         } catch (Exception e) {
             Log.e(TAG, "IO Exception on saving audio file " + saveFile.toString(), e);

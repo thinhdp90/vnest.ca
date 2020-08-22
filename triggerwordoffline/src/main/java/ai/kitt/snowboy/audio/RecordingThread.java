@@ -45,6 +45,7 @@ public class RecordingThread {
         detector.SetAudioGain(1);
         detector.ApplyFrontend(true);
         try {
+            player.setVolume(0.1f,0.1f);
             player.setDataSource(strEnvWorkSpace + "ding.wav");
             player.prepare();
         } catch (Exception e) {
@@ -151,6 +152,7 @@ public class RecordingThread {
             } else if (result > 0) {
                 sendMessage(MsgEnum.MSG_ACTIVE, null);
                 Log.i("Snowboy: ", "Hotword " + Integer.toString(result) + " detected!");
+
                 player.start();
             }
         }

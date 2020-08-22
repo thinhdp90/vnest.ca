@@ -49,6 +49,7 @@ public class PlaybackThread {
             @Override
             public void run() {
                 play();
+
             }
         });
         thread.start();

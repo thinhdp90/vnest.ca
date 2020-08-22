@@ -160,7 +160,6 @@ public class TriggerOfflineService extends Service {
     }
 
     public void updateIfActive() {
-        stopOfflineRecording();
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -178,11 +177,14 @@ public class TriggerOfflineService extends Service {
                 sendBroadcast(intent);
             }
         }, 300);
+        stopOfflineRecording();
     }
 
     public void stopOfflineRecording() {
         try {
-            recordingThread.stopRecording();
+            if(recordingThread!=null) {
+                recordingThread.stopRecording();
+            }
             updateLog(" ==============> Offline recording stopped ==============");
         } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
