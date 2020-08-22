@@ -35,7 +35,7 @@ import ai.kitt.vnest.feature.screensettings.FragmentSettings;
 
 public class MainActivity extends BaseMainActivity {
     private View bottomSheetLayout;
-    private BottomSheetBehavior bottomSheetBehavior;
+    public BottomSheetBehavior bottomSheetBehavior;
     private FrameLayout fragmentContainer;
     private RecyclerView mRecyclerViewDefaultAssistant;
     private RecyclerView mRecyclerViewDefaultMainItem;
@@ -97,9 +97,11 @@ public class MainActivity extends BaseMainActivity {
                             break;
                         case 3:
                             mDrawerLayout.closeDrawers();
+                            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                             Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentSettings.TAG);
                             if (fragment == null) {
                                 getSupportFragmentManager().beginTransaction()
+                                        .setCustomAnimations(R.anim.grow_from_bottom, R.anim.shrink_from_top, R.anim.grow_from_bottom, R.anim.shrink_from_top)
                                         .replace(R.id.fragment_container, new FragmentSettings(), FragmentSettings.TAG)
                                         .addToBackStack("1")
                                         .commit();

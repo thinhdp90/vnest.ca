@@ -87,6 +87,7 @@ public class ViewModel extends androidx.lifecycle.ViewModel {
                 VNestDB.getInstances(context)
                         .messageDao()
                         .insert(message);
+//                getLiveDataStartRecord().postValue(true);
             } catch (Exception e) {
                 Log.e("Error", e.getMessage(), e);
             }

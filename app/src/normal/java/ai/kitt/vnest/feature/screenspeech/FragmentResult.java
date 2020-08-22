@@ -16,8 +16,11 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -40,6 +43,7 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import ai.kitt.snowboy.service.TriggerOfflineService;
 import ai.kitt.vnest.App;
@@ -62,12 +66,12 @@ public class FragmentResult extends Fragment {
     public final static int START_SPEECH_TIME_COUNT = 102;
     public final static int STOP_SPEECH_TIME_COUNT = 103;
     private static int MAX_SPEECH_TIME_OUT = 20;
+
     private int speechCountTime = MAX_SPEECH_TIME_OUT;
     private RecyclerView mListResult;
-    private TextView btnBack;
-    private View iconBack;
     private AdapterAssistantMessage adapter;
     private ViewModel viewModel;
+    Toolbar toolbar;
     public Button btnVoice;
     public static Boolean isPlayingRecognition = false;
     private RecognitionProgressView recognitionProgressView;
@@ -104,7 +108,7 @@ public class FragmentResult extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewModel = new ViewModelProvider(Objects.requireNonNull(getActivity())).get(ViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(ViewModel.class);
     }
 
     @Nullable
@@ -134,9 +138,12 @@ public class FragmentResult extends Fragment {
         initializePlayer();
     }
 
+
     public void initView(View view) {
-        btnBack = view.findViewById(R.id.btn_back);
-        iconBack = view.findViewById(R.id.icon_back);
+        toolbar = view.findViewById(R.id.toolbar);
+        ((AppCompatActivity)requireActivity()).setSupportActionBar(toolbar);
+        ((AppCompatActivity)requireActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationIcon(ContextCompat.getDrawable(requireContext(),R.drawable.ic_round_arrow_back_24));
         mListResult = view.findViewById(R.id.mRecyclerView);
         btnVoice = view.findViewById(R.id.btnVoice);
         recognitionProgressView = view.findViewById(R.id.recognition_view);
@@ -163,18 +170,11 @@ public class FragmentResult extends Fragment {
             btnClosePlayerView.setVisibility(View.GONE);
             playerView.setVisibility(View.GONE);
             exoPlayer.stop();
-            btnBack.setVisibility(View.VISIBLE);
-            iconBack.setVisibility(View.VISIBLE);
+            toolbar.setVisibility(View.VISIBLE);
             btnVoice.setVisibility(View.VISIBLE);
             recognitionProgressView.setVisibility(View.INVISIBLE);
         });
-        btnBack.setOnClickListener(view1 -> {
-            Objects.requireNonNull(getActivity()).onBackPressed();
-        });
-        iconBack.setOnClickListener(v -> {
-            btnBack.performClick();
-        });
-
+        toolbar.setOnClickListener(v -> requireActivity().onBackPressed());
         viewModel.getListMessLiveData().observe(getViewLifecycleOwner(), list -> {
             ArrayList<ResultItem> listResultItem = new ArrayList<>();
             for (int i = 0; i < list.size(); i++) {
@@ -227,11 +227,11 @@ public class FragmentResult extends Fragment {
 
     private void initRecognitionProgressView() {
         int[] colors = {
-                ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color1),
-                ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color2),
-                ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color3),
-                ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color4),
-                ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color5)
+                ContextCompat.getColor(requireContext(), R.color.color1),
+                ContextCompat.getColor(requireContext(), R.color.color2),
+                ContextCompat.getColor(requireContext(), R.color.color3),
+                ContextCompat.getColor(requireContext(), R.color.color4),
+                ContextCompat.getColor(requireContext(), R.color.color5)
         };
 
         int[] heights = {60, 76, 58, 80, 55};
@@ -308,7 +308,7 @@ public class FragmentResult extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-
+        getMainActivity().bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
     }
 
     private void initializePlayer() {
@@ -332,8 +332,7 @@ public class FragmentResult extends Fragment {
         viewModel.getLiveDataOpenVTV().postValue(null);
         finishRecognition();
 //        playerView.setVisibility(View.VISIBLE);
-        btnBack.setVisibility(View.INVISIBLE);
-        iconBack.setVisibility(View.INVISIBLE);
+        toolbar.setVisibility(View.INVISIBLE);
         btnVoice.setVisibility(View.GONE);
 //        recognitionProgressView.setVisibility(View.INVISIBLE);
 //        btnClosePlayerView.setVisibility(View.VISIBLE);

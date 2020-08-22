@@ -127,4 +127,5 @@ dependencies {
     implementation project(':opencam')
     implementation project(':VTV')
     implementation project(':triggerwordoffline')
+    implementation project(':baseui')
 }

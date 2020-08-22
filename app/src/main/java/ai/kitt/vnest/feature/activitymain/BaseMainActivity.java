@@ -212,7 +212,6 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         viewModel = new ViewModelProvider(this, new ViewModelFactory(this)).get(ViewModel.class);
-
         if (checkPermission()) {
             initIfPermissionGranted();
         } else {
@@ -231,6 +230,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
 
 
     protected void initIfPermissionGranted() {
+        startHomeFragment();
         initView();
         initAction();
         initBaseAction();
@@ -632,10 +632,10 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
         if (fragment == null) {
             getSupportFragmentManager()
                     .beginTransaction()
-                    .add(R.id.fragment_container, new FragmentHome(), FragmentHome.class.getName())
-                    .addToBackStack(MainActivity.class.getName())
+                    .replace(R.id.fragment_container, new FragmentHome(), FragmentHome.class.getName())
                     .commit();
         }
+
     }
 
     public void startResultFragment() {
@@ -643,8 +643,9 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
         if (fragment == null) {
             getSupportFragmentManager()
                     .beginTransaction()
+                    .addToBackStack(FragmentResult.class.getName())
+                    .setCustomAnimations(R.anim.grow_from_bottom, R.anim.shrink_from_top, R.anim.grow_from_bottom, R.anim.shrink_from_top)
                     .add(R.id.fragment_container, new FragmentResult(), FragmentResult.class.getName())
-                    .addToBackStack(MainActivity.class.getName())
                     .commit();
         }
     }
@@ -661,12 +662,14 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
 
     public void updateApp(CarResponse carResponse) {
         if (carResponse == null) {
-            new ConfirmDialog.Builder(this, false)
-                    .setOnDismissListener(dialog -> {
-                        sendCarInfo();
-                    })
-                    .message(getString(R.string.no_internet_connection))
-                    .show();
+            if(!App.isForTest) {
+                new ConfirmDialog.Builder(this, false)
+                        .setOnDismissListener(dialog -> {
+                            sendCarInfo();
+                        })
+                        .message(getString(R.string.no_internet_connection))
+                        .show();
+            }
             return;
         }
         callDeviceInfoTimes++;
@@ -691,7 +694,6 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
     }
 
     public void activeApp() {
-        startHomeFragment();
         dialogActiveControl = new DialogActiveControl(this, new DialogActiveControl.OnActiveListener() {
             @Override
             public void onAccept(String phone, String activeCode) {
@@ -731,8 +733,8 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
 
     @Override
     public void onBackPressed() {
-        if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
-            super.onBackPressed();
+        if (getSupportFragmentManager().getBackStackEntryCount() >1) {
+            getSupportFragmentManager().popBackStack();
         }
     }
 
@@ -1005,14 +1007,19 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
                 }
             }, MainActivity.class);
         }
+
         if (checkPermission()) {
             if (AppUtil.checkInternetConnection(this) && App.isActivated) {
                 startResultFragment();
                 viewModel.getLiveDataStartRecord().postValue(true);
-            } else {
-                startHomeFragment();
             }
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.e("Onstart", "OnStart");
     }
 
     /**

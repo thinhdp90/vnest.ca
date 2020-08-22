@@ -30,7 +30,7 @@ public class FragmentHome extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewModel = new ViewModelProvider(Objects.requireNonNull(getActivity())).get(ViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(ViewModel.class);
     }
 
     @Nullable

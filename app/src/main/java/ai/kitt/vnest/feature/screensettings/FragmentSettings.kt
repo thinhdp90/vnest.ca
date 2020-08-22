@@ -48,12 +48,13 @@ class FragmentSettings : BaseFragment(R.layout.fragment_settings) {
     override fun initAction(view: View) {
         binding.maps.root.setOnClickListener {
             requireActivity().supportFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_container, FragmentSelectMaps())
+                    .setCustomAnimations(R.anim.grow_from_bottom, R.anim.shrink_from_top, R.anim.grow_from_bottom, R.anim.shrink_from_top)
+                    .add(R.id.fragment_container, FragmentSelectMaps())
                     .addToBackStack("1")
                     .commit()
         }
         viewModel.settingLiveData.observe(viewLifecycleOwner, Observer {
-            if(it) {
+            if (it) {
                 setSelectedMaps()
             }
         })
@@ -70,7 +71,7 @@ class FragmentSettings : BaseFragment(R.layout.fragment_settings) {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if(item.itemId == android.R.id.home) {
+        if (item.itemId == android.R.id.home) {
             (requireActivity() as MainActivity).startResultFragment()
             return true
         }

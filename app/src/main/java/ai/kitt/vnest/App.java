@@ -105,6 +105,7 @@ public class App extends Application implements Application.ActivityLifecycleCal
 
     }
 
+
     @Override
     public void onActivityStopped(Activity activity) {
         Log.e("Activity", "Stoped" + activity.getLocalClassName());

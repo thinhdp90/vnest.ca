@@ -30,7 +30,7 @@ buildscript {
         // in the individual module build.gradle files
     }
 }
-
+apply from: 'dependencies.gradle'
 allprojects {
     repositories {
         google()

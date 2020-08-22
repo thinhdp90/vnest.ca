@@ -9,8 +9,8 @@ abstract class BaseFragment(@LayoutRes val layoutRes: Int) : Fragment(layoutRes)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        initView(view!!)
-        initAction(view!!)
+        initView(requireView())
+        initAction(requireView())
     }
 
 

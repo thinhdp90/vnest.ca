@@ -33,6 +33,8 @@ class FragmentSelectMaps : BaseFragment(R.layout.fragment_maps) {
     override fun initView(view: View) {
         view.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         view.recyclerView.adapter = adapter
+        view.recyclerView.edgeEffectFactory = adapter.edgeEffectFactory
+        view.recyclerView.addOnScrollListener(adapter.onScrollListener)
     }
 
     override fun initAction(view: View) {
