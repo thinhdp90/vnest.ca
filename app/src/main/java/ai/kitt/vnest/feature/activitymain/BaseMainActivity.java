@@ -21,6 +21,7 @@ import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
+import android.view.WindowManager;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -208,6 +209,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initAIMasterService();
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         viewModel = new ViewModelProvider(this, new ViewModelFactory(this)).get(ViewModel.class);
 
