@@ -15,12 +15,15 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
+import ai.kitt.vnest.App;
+
 public class TextToSpeechManager {
     private static final String LOG_TAG = "Text to speech";
     public static final int UPDATE_AFTER_PROCESS_TEXT = 4;
     public static final int RESTART_VOICE_RECOGNITION = 1;
     public static final int STOP_VOICE_RECOGNITION = 2;
     private static final String TEXT_TO_SPEECH_RESTART_VOICE_RECORD = "restart_voice";
+    public static boolean initSuccess = false;
 
     public static Handler mHandler = new Handler(Looper.getMainLooper()) {
         @Override
@@ -60,7 +63,10 @@ public class TextToSpeechManager {
 
     public void initTextToSpeech(Context context) {
         mTextToSpeech = new TextToSpeech(context, status -> {
-            if (status != TextToSpeech.ERROR) {
+            if(status == TextToSpeech.ERROR) {
+                initSuccess = false;
+            } else {
+                initSuccess = true;
                 mTextToSpeech.setLanguage(Locale.getDefault());
             }
             mTextToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
@@ -95,6 +101,9 @@ public class TextToSpeechManager {
     }
 
     public void speak(String key, boolean shouldRestartRecord) {
+        if(!initSuccess) {
+            initTextToSpeech(App.get());
+        }
         if (!shouldRestartRecord) {
             mTextToSpeech.speak(key, TextToSpeech.QUEUE_FLUSH, null);
         } else {

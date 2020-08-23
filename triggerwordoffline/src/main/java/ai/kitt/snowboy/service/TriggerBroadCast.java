@@ -1,9 +1,12 @@
 package ai.kitt.snowboy.service;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.wifi.WifiManager;
 import android.util.Log;
 
 public class TriggerBroadCast extends BroadcastReceiver {
@@ -22,6 +25,8 @@ public class TriggerBroadCast extends BroadcastReceiver {
         intentFilter.addAction(ACTION_TURN_MIC_OFF);
         intentFilter.addAction(ACTION_START_APP);
         intentFilter.addAction(ACTION_RESTART_SERVICE);
+        intentFilter.addAction("android.net.wifi.WIFI_STATE_CHANGED");
+        intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
         context.registerReceiver(triggerBroadCast, intentFilter);
         return triggerBroadCast;
     }
@@ -41,6 +46,15 @@ public class TriggerBroadCast extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         assert action != null;
+        final ConnectivityManager connMgr = (ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        final android.net.NetworkInfo networkInfo = connMgr
+                .getActiveNetworkInfo();
+        if (networkInfo!=null && networkInfo.isConnected()) {
+            onHandleTrigger.onNetWorkAvailable();
+        }
+
         if (action.equals(ACTION_TURN_MIC_ON)) {
             Log.e(TAG, "Turn on mic");
             onHandleTrigger.onActionTurnOn();
@@ -75,6 +89,8 @@ public class TriggerBroadCast extends BroadcastReceiver {
         void onActionTurnOff();
 
         void onActionStartApp();
+
+        void onNetWorkAvailable();
     }
 
 }

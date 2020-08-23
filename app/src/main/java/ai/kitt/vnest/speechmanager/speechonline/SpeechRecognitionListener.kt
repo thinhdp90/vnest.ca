@@ -39,7 +39,7 @@ class SpeechRecognitionListener(
     override fun onError(error: Int) {
         Log.e("OnError", error.toString())
         when (error) {
-            SpeechRecognizer.ERROR_NETWORK -> {
+            SpeechRecognizer.ERROR_NETWORK, SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> {
                 callback.onErrorNoNetWork()
             }
             SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
@@ -50,7 +50,6 @@ class SpeechRecognitionListener(
                 callback.onMuteVolume(true)
                 callback.onErrorNoMatch()
             }
-
         }
 
     }
