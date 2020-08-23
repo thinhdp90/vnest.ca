@@ -87,26 +87,6 @@ public class MainActivity extends BaseMainActivity {
         }
     }
 
-    public void startResultFragment() {
-        Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentResult.class.getName());
-        if (fragment == null) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(R.id.fragment_container, new FragmentResult(), FragmentResult.class.getName())
-                    .addToBackStack(MainActivity.class.getName())
-                    .commit();
-        }
-    }
-    public void startHomeFragment() {
-        Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentHome.class.getName());
-        if (fragment == null) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(R.id.fragment_container, new FragmentHome(), FragmentHome.class.getName())
-                    .addToBackStack(MainActivity.class.getName())
-                    .commit();
-        }
-    }
 
     private void setUiRecognition(Context context) {
         weather = new OpenWeatherMapHelper(getString(R.string.OPEN_WEATHER_MAP_API_KEY));

@@ -30,7 +30,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    flavorDimensions "app"
+    flavorDimensions "app", "master_ai_service"
     dataBinding {
         enabled = true
     }
@@ -45,7 +45,19 @@ android {
             dimension "app"
             minSdkVersion 21
         }
+    }
+    productFlavors {
+        singleAiService {
+            dimension "master_ai_service"
+            buildConfigField "boolean", "multi_ai_service", "false"
+            buildConfigField "String", "AI_CONFIG_ACCESS_TOKEN", '"73cf2510f55c425eb5f5d8bb20d6d3e7"'
+        }
 
+        multiAiService {
+            dimension "master_ai_service"
+            buildConfigField "boolean", "multi_ai_service", "true"
+            buildConfigField "String", "AI_CONFIG_ACCESS_TOKEN", '"5b5c9649593ac8e8f158f9da9e56e6d3a5e0c5a1"'
+        }
     }
     applicationVariants.all { variant ->
         def flavors = variant.productFlavors

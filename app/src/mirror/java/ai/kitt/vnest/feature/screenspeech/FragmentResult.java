@@ -29,14 +29,8 @@ public class FragmentResult extends BaseFragmentResult {
     @Override
     public void onPoisResult() {
         viewModel.getLiveListPoi().observe(getViewLifecycleOwner(), pois -> {
-//            adapter.addItem(new ItemListResult(pois));
-//            mListResult.scrollToPosition(adapter.getItemCount() - 1);
             showListResult();
             binding.mRecyclerViewResult.setAdapter(new AdapterAddressResult(pois,false));
-
-            // listResultAdapter.setVisibility(true);
-            //            showListResult();
-            // listResultAdapter.refresh(pois);
         });
     }
 

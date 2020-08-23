@@ -140,16 +140,20 @@ public class FragmentResult extends Fragment {
 
 
     public void initView(View view) {
-        toolbar = view.findViewById(R.id.toolbar);
-        ((AppCompatActivity)requireActivity()).setSupportActionBar(toolbar);
-        ((AppCompatActivity)requireActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        toolbar.setNavigationIcon(ContextCompat.getDrawable(requireContext(),R.drawable.ic_round_arrow_back_24));
-        mListResult = view.findViewById(R.id.mRecyclerView);
         btnVoice = view.findViewById(R.id.btnVoice);
         recognitionProgressView = view.findViewById(R.id.recognition_view);
         playerView = view.findViewById(R.id.playerView);
         btnClosePlayerView = view.findViewById(R.id.btnClosePlayerView);
+        mListResult = view.findViewById(R.id.mRecyclerView);
+        toolbar = view.findViewById(R.id.toolbar);
+        setupToolbar();
         initRecognitionProgressView();
+    }
+    public void setupToolbar() {
+        ((AppCompatActivity)requireActivity()).setSupportActionBar(toolbar);
+        ((AppCompatActivity)requireActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationIcon(ContextCompat.getDrawable(requireContext(),R.drawable.ic_round_arrow_back_24));
+
     }
 
     public void intAction(View view) {
@@ -360,6 +364,9 @@ public class FragmentResult extends Fragment {
             return new DashMediaSource.Factory(dashChunkSourceFactory, manifestDataSourceFactory).createMediaSource(uri);
         }
     }
-
-
+    @Override
+    public void onDestroyView() {
+        finishRecognition();
+        super.onDestroyView();
+    }
 }

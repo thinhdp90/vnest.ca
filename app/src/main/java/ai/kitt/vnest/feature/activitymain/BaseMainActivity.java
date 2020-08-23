@@ -62,6 +62,7 @@ import ai.api.model.AIRequest;
 import ai.api.model.AIResponse;
 import ai.kitt.snowboy.service.TriggerBroadCast;
 import ai.kitt.vnest.App;
+import ai.kitt.vnest.BuildConfig;
 import ai.kitt.vnest.basedata.api.model.ActiveCode;
 import ai.kitt.vnest.basedata.api.model.ActiveResponse;
 import ai.kitt.vnest.basedata.api.model.CarResponse;
@@ -112,7 +113,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
     protected static final String KEY_NAVIGATION = "Chỉ đường";
     protected static final String KEY_MAINTAIN_SCHEDULE = "Lịch sử sửa chữa";
     protected static final String KEY_GASOLINE_HISTORY = "Lịch sử đổ xăng";
-    protected static final String AI_CONFIG_ACCESS_TOKEN = "73cf2510f55c425eb5f5d8bb20d6d3e7";
+    protected static final String AI_CONFIG_ACCESS_TOKEN = BuildConfig.AI_CONFIG_ACCESS_TOKEN;
     /**
      * Open un_know place
      *
@@ -199,7 +200,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
     protected Boolean isStartRecognizer;
     public DownLoadBroadCast downLoadBroadCast;
     private TriggerBroadCast triggerBroadCast;
-
+    private String currentAiChildService;
 
     public SpeechRecognizerManager getSpeechRecognizerManager() {
         return speechRecognizerManager;
@@ -265,6 +266,13 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
         aiService = AIService.getService(this, config);
     }
 
+    protected AIService getChildAIService(String config) {
+        final AIConfiguration clientConfig = new AIConfiguration(config,
+                AIConfiguration.SupportedLanguages.English,
+                AIConfiguration.RecognitionEngine.System);
+        return AIService.getService(this, clientConfig);
+    }
+
     protected void initProgressDialog() {
         if (downloadDialog == null) {
             downloadDialog = new ProgressDialog(this);
@@ -274,6 +282,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
             downloadDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         }
         downloadDialog.show();
+//        BuildConfig.DEBUG
     }
 
     protected DefaultAssistantAdapter getAssistantAdapter(int numItems, final DrawerLayout mDrawerLayout) {
@@ -298,6 +307,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
                         Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentSettings.TAG);
                         if (fragment == null) {
                             getSupportFragmentManager().beginTransaction()
+                                    .setCustomAnimations(R.anim.grow_from_bottom, R.anim.shrink_from_top, R.anim.grow_from_bottom, R.anim.shrink_from_top)
                                     .replace(R.id.fragment_container, new FragmentSettings(), FragmentSettings.TAG)
                                     .addToBackStack("1")
                                     .commit();
@@ -465,7 +475,12 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
                 Log.d(LOG_TAG, "===== aiRequest:" + gson.toJson(aiRequest));
 
                 try {
-                    AIResponse aiRes = aiService.textRequest(aiRequest);
+                    AIResponse aiRes;
+                    if (BuildConfig.multi_ai_service && contexts != null) {
+                        aiRes = getChildAIService(currentAiChildService).textRequest(aiRequest);
+                    } else {
+                        aiRes = aiService.textRequest(aiRequest);
+                    }
                     Log.d(LOG_TAG, gson.toJson(aiRes));
                     String action = aiRes.getResult().getAction();
                     Log.e(LOG_TAG, "===== action:" + action);
@@ -478,6 +493,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
                     } catch (Exception e) {
                         Log.e(LOG_TAG, e.getMessage(), e);
                     }
+                    Log.e("Response",aiRes.getResult().toString());
                     switch (action) {
                         case OPEN_BANK_PLACE_UN_KNOW_SPEECH:
                         case OPEN_DRINK_PLACE_UN_KNOW_SPEECH:
@@ -1042,13 +1058,14 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
     @Override
     protected void onStart() {
         super.onStart();
-        new ConnectivityManager.NetworkCallback(){
+        new ConnectivityManager.NetworkCallback() {
             @Override
             public void onAvailable(Network network) {
                 super.onAvailable(network);
-                Log.e("sdfdsf","sdfsdfsdfsdfsd");
+                Log.e("sdfdsf", "sdfsdfsdfsdfsd");
             }
-        };    }
+        };
+    }
 
     /**
      * Stop the recognizer.

@@ -16,6 +16,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
@@ -66,8 +68,6 @@ abstract public class BaseFragmentResult extends BaseFragment {
     protected static int MAX_SPEECH_TIME_OUT = 20;
 
     protected RecyclerView mListResult;
-    protected TextView btnBack;
-    protected View iconBack;
     protected AdapterAssistantMessage adapter;
     protected ViewModel viewModel;
     protected Button btnVoice;
@@ -78,6 +78,7 @@ abstract public class BaseFragmentResult extends BaseFragment {
     protected ExoPlayer exoPlayer;
     protected TrackSelector trackSelector;
     protected ImageView btnClosePlayerView;
+    protected Toolbar toolbar;
 
     public Handler timer = new Handler();
     public Runnable timerSpeech = this::notifySpeechTimeOut;
@@ -108,7 +109,7 @@ abstract public class BaseFragmentResult extends BaseFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewModel = new ViewModelProvider(Objects.requireNonNull(getActivity())).get(ViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(ViewModel.class);
     }
 
     @Nullable
@@ -124,16 +125,21 @@ abstract public class BaseFragmentResult extends BaseFragment {
     }
 
     public void initView(View view) {
-        btnBack = view.findViewById(R.id.btn_back);
-        iconBack = view.findViewById(R.id.icon_back);
         mListResult = view.findViewById(R.id.mRecyclerView);
         btnVoice = view.findViewById(R.id.btnVoice);
         recognitionProgressView = view.findViewById(R.id.recognition_view);
         playerView = view.findViewById(R.id.playerView);
         btnClosePlayerView = view.findViewById(R.id.btnClosePlayerView);
+        toolbar = view.findViewById(R.id.toolbar);
+        setupToolbar();
         initRecognitionProgressView();
     }
+    public void setupToolbar() {
+        ((AppCompatActivity)requireActivity()).setSupportActionBar(toolbar);
+        ((AppCompatActivity)requireActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationIcon(ContextCompat.getDrawable(requireContext(),R.drawable.ic_round_arrow_back_24));
 
+    }
     public void initAction(View view) {
         setUpRecognitionsUi();
         adapter = new AdapterAssistantMessage();
@@ -152,16 +158,12 @@ abstract public class BaseFragmentResult extends BaseFragment {
             btnClosePlayerView.setVisibility(View.GONE);
             playerView.setVisibility(View.GONE);
             exoPlayer.stop();
-            btnBack.setVisibility(View.VISIBLE);
-            iconBack.setVisibility(View.VISIBLE);
+            toolbar.setVisibility(View.VISIBLE);
             btnVoice.setVisibility(View.VISIBLE);
             recognitionProgressView.setVisibility(View.INVISIBLE);
         });
-        btnBack.setOnClickListener(view1 -> {
-            Objects.requireNonNull(getActivity()).onBackPressed();
-        });
-        iconBack.setOnClickListener(v -> {
-            btnBack.performClick();
+        toolbar.setOnClickListener(view1 -> {
+            requireActivity().onBackPressed();
         });
 
         onPoisResult();
@@ -219,11 +221,11 @@ abstract public class BaseFragmentResult extends BaseFragment {
     protected void initRecognitionProgressView() {
 
         int[] colors = {
-                ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color1),
-                ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color2),
-                ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color3),
-                ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color4),
-                ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.color5)
+                ContextCompat.getColor(requireContext(), R.color.color1),
+                ContextCompat.getColor(requireContext(), R.color.color2),
+                ContextCompat.getColor(requireContext(), R.color.color3),
+                ContextCompat.getColor(requireContext(), R.color.color4),
+                ContextCompat.getColor(requireContext(), R.color.color5)
         };
 
         int[] heights = {60, 76, 58, 80, 55};
@@ -321,8 +323,7 @@ abstract public class BaseFragmentResult extends BaseFragment {
             }
             startActivity( intent );
         }catch (Exception ex) {
-            btnBack.setVisibility(View.INVISIBLE);
-            iconBack.setVisibility(View.INVISIBLE);
+            toolbar.setVisibility(View.INVISIBLE);
             btnVoice.setVisibility(View.GONE);
             playerView.setVisibility(View.VISIBLE);
             recognitionProgressView.setVisibility(View.INVISIBLE);
@@ -347,5 +348,11 @@ abstract public class BaseFragmentResult extends BaseFragment {
             DefaultHttpDataSourceFactory manifestDataSourceFactory = new DefaultHttpDataSourceFactory(userAgent);
             return new DashMediaSource.Factory(dashChunkSourceFactory, manifestDataSourceFactory).createMediaSource(uri);
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        finishRecognition();
+        super.onDestroyView();
     }
 }
