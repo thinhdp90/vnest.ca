@@ -20,6 +20,7 @@ import ai.kitt.vnest.basedata.entity.Audio;
 import ai.kitt.vnest.basedata.entity.Message;
 import ai.kitt.vnest.basedata.entity.Poi;
 
+import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,7 +116,7 @@ public class ViewModel extends androidx.lifecycle.ViewModel {
 
             @Override
             public void onError(Throwable throwable) {
-                if (throwable instanceof UnknownHostException || throwable instanceof TimeoutException) {
+                if (throwable instanceof UnknownHostException || throwable instanceof TimeoutException || throwable instanceof ConnectException) {
                     liveDataUpdateResponse.postValue(null);
                 }
             }

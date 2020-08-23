@@ -83,19 +83,27 @@ public class AdapterAddressResult extends RecyclerView.Adapter<RecyclerView.View
                 if(poi.getTitle() == null || poi.getTitle().trim().isEmpty()) {
                     itemName.setHeight(0);
                 }
-                itemName.setText(poi.getTitle());
-                itemAddress.setText(poi.getAddress());
-                itemDistance.setText(((int) poi.getDistance()) + "m");
-                Log.e("ImageUrl", poi.getImg());
-                imageView.setClipToOutline(true);
-                GlideApp.with(itemView)
-                        .load(poi.getImg().trim())
-                        .into(imageView);
                 itemView.setOnClickListener(view1 -> {
                     AppUtil.displayPointToMap(poi, itemView.getContext());
                 });
-            } catch (Exception e) {
+                if(poi.getImg() !=null && !poi.getImg().trim().isEmpty()){
+                    GlideApp.with(itemView)
+                            .load(poi.getImg().trim())
+                            .error(R.drawable.load_more)
+                            .into(imageView);
+                } else {
+                    GlideApp.with(itemView)
+                            .load(R.drawable.load_more)
+                            .into(imageView);
+                }
 
+                itemName.setText((poi.getTitle()!=null ? poi.getTitle() : "" ));
+                itemName.setSelected(true);
+                itemAddress.setText((poi.getAddress() == null) ? poi.getAddress() : "");
+                imageView.setClipToOutline(true);
+                itemDistance.setText(((int) poi.getDistance()) + "m");
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
         }

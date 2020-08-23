@@ -97,6 +97,7 @@ public class MainActivity extends BaseMainActivity {
                             break;
                         case 3:
                             mDrawerLayout.closeDrawers();
+                            bottomSheetBehavior.setHideable(true);
                             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                             Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentSettings.TAG);
                             if (fragment == null) {
@@ -140,6 +141,12 @@ public class MainActivity extends BaseMainActivity {
             toggle.syncState();
             mDrawerLayout.addDrawerListener(toggle);
         }
+    }
+
+    @Override
+    public void startResultFragment() {
+        super.startResultFragment();
+        bottomSheetBehavior.setHideable(false);
     }
 
     private void initBottomSheet() {

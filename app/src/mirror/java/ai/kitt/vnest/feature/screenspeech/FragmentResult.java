@@ -55,4 +55,9 @@ public class FragmentResult extends BaseFragmentResult {
         constraintSet.applyTo((ConstraintLayout) binding.getRoot());
     }
 
+    @Override
+    public void onDestroyView() {
+        hideListResult();
+        super.onDestroyView();
+    }
 }
