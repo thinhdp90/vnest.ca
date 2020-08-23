@@ -30,28 +30,20 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    flavorDimensions "app", "apiVersion"
+    flavorDimensions "app"
     dataBinding {
         enabled = true
-    }
-    productFlavors {
-        minApi23 {
-            dimension "apiVersion"
-            minSdkVersion 23
-        }
-        minApi21 {
-            dimension "apiVersion"
-            minSdkVersion 21
-        }
     }
 
     productFlavors {
         normal {
             dimension "app"
+            minSdkVersion 23
         }
 
         mirror {
             dimension "app"
+            minSdkVersion 21
         }
 
     }

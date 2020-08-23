@@ -379,40 +379,50 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
 
     protected void initSpeechRecognizerManager() {
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this, ComponentName.unflattenFromString("com.google.android.googlequicksearchbox/com.google.android.voicesearch.serviceapi.GoogleRecognitionService"));
-        speechRecognizerManager = SpeechRecognizerManager.getInstance(this, new OnResultReady() {
-                    @Override
-                    public void onResults(@NotNull ArrayList<String> results) {
-                        if (isExcecuteText) {
-                            return;
-                        }
-                        speechRecognizerManager.muteVolume(false);
-                        finishRecognition();
-                        speechRecognizerManager.stopListening();
-                        String text = results.get(0);
-                        isExcecuteText = true;
-                        sendMessage(text, true);
-                        processing_text(text, false);
-                        Log.d(LOG_TAG, "onResults: " + text);
-                    }
+        speechRecognizerManager = SpeechRecognizerManager.getInstance(this, speechRecognizer, new OnResultReady() {
+            @Override
+            public void onResults(@NotNull ArrayList<String> results) {
+                if (isExcecuteText) {
+                    return;
+                }
+                speechRecognizerManager.muteVolume(false);
+                finishRecognition();
+                speechRecognizerManager.stopListening();
+                String text = results.get(0);
+                isExcecuteText = true;
+                sendMessage(text, true);
+                processing_text(text, false);
+                Log.d(LOG_TAG, "onResults: " + text);
+            }
 
-                    @Override
-                    public void onStreamResult(@NotNull ArrayList<String> partialResults) {
-                        for (String st : partialResults) {
-                            Log.e("PartialResults", st);
-                        }
+            @Override
+            public void onStreamResult(@NotNull ArrayList<String> partialResults) {
+                for (String st : partialResults) {
+                    Log.e("PartialResults", st);
+                }
+            }
+        }, new SpeechRecognizerManager.SpeechRecognizerManagerCallBack() {
+            @Override
+            public void onNoNetWork() {
+                viewModel.getLiveDataStartRecord().postValue(false);
+                textToSpeech.speak(getString(R.string.no_internet_connection),false);
+            }
 
-                    }
-                }, speechRecognizer,
-                () -> viewModel.getLiveDataRebindRecognitionsView().postValue(true),
-                () -> {
-                    try {
-                        FragmentResult fragmentResult = (FragmentResult) getSupportFragmentManager().findFragmentByTag(FragmentResult.class.getName());
-                        fragmentResult.notifySpeechTimeOut();
-                    } catch (Exception e) {
-                        Log.e("Error", e.getMessage(), e);
-                    }
+            @Override
+            public void onErrorTimeOut() {
+                try {
+                    FragmentResult fragmentResult = (FragmentResult) getSupportFragmentManager().findFragmentByTag(FragmentResult.class.getName());
+                    fragmentResult.notifySpeechTimeOut();
+                } catch (Exception e) {
+                    Log.e("Error", e.getMessage(), e);
+                }
+            }
 
-                });
+            @Override
+            public void onRebindToSpeechRecognitionView() {
+               viewModel.getLiveDataRebindRecognitionsView().postValue(true);
+            }
+        });
     }
 
     public void finishRecognition() {

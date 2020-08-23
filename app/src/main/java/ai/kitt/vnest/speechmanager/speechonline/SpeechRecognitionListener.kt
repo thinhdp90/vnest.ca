@@ -10,9 +10,7 @@ import com.github.zagum.speechrecognitionview.adapters.RecognitionListenerAdapte
 
 class SpeechRecognitionListener(
         private val mListener: OnResultReady,
-        var onErrorNoMatch: () -> Unit,
-        val onMuteVolume: (shouldMute: Boolean) -> Unit,
-        val onErrorTimeOut: () -> Unit
+        val callback: OnHandleSpeechError
 ) : RecognitionListenerAdapter() {
 
     override fun onReadyForSpeech(params: Bundle?) {
@@ -30,11 +28,11 @@ class SpeechRecognitionListener(
     }
 
     override fun onBeginningOfSpeech() {
-        onMuteVolume(true)
+        callback.onMuteVolume(true)
     }
 
     override fun onEndOfSpeech() {
-        onMuteVolume(false)
+        callback.onMuteVolume(false)
     }
 
     @Synchronized
@@ -42,15 +40,15 @@ class SpeechRecognitionListener(
         Log.e("OnError", error.toString())
         when (error) {
             SpeechRecognizer.ERROR_NETWORK -> {
-
+                callback.onErrorNoNetWork()
             }
             SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
                 // send to stop speech record
-                onErrorTimeOut()
+                callback.onErrorTimeOut()
             }
             else -> {
-                onMuteVolume(true)
-                onErrorNoMatch()
+                callback.onMuteVolume(true)
+                callback.onErrorNoMatch()
             }
 
         }
@@ -67,13 +65,20 @@ class SpeechRecognitionListener(
     }
 
     override fun onResults(results: Bundle?) {
-        onMuteVolume(false)
+        callback.onMuteVolume(false)
         if (results != null) {
             val text = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
             if (text != null) {
                 mListener.onResults(text)
             }
         }
+    }
+    
+    interface OnHandleSpeechError{
+        fun onErrorNoMatch()
+        fun onMuteVolume(shouldMute: Boolean)
+        fun onErrorTimeOut()
+        fun onErrorNoNetWork()
     }
 
 }

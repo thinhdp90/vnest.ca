@@ -8,25 +8,20 @@ import android.media.AudioManager
 import android.os.Build
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
-import android.util.Log
-import java.util.*
 
 
 class SpeechRecognizerManager(
         val context: Context,
-        private var onResultReady: OnResultReady,
         var speechRecognizer: SpeechRecognizer,
-        var onRecreateVoiceRecord: OnRecreateVoiceRecord,
-        var onErrorTimeOut: () -> Unit
+        private var onResultReady: OnResultReady,
+        var callback: SpeechRecognizerManagerCallBack
 ) {
     companion object {
         var INSTANCE: SpeechRecognizerManager? = null
 
         @JvmStatic
-        fun getInstance(context: Context, onResultReady: OnResultReady, speechRecognizer: SpeechRecognizer, onRecreateVoiceRecord: OnRecreateVoiceRecord, onError: OnSpeechError): SpeechRecognizerManager {
-                INSTANCE = SpeechRecognizerManager(context, onResultReady, speechRecognizer, onRecreateVoiceRecord, onErrorTimeOut = {
-                    onError.onErrorTimeOut()
-                })
+        fun getInstance(context: Context, speechRecognizer: SpeechRecognizer, onResultReady: OnResultReady, callback: SpeechRecognizerManagerCallBack): SpeechRecognizerManager {
+                INSTANCE = SpeechRecognizerManager(context, speechRecognizer,onResultReady, callback)
             return INSTANCE!!
         }
 
@@ -39,15 +34,27 @@ class SpeechRecognizerManager(
     private var timeOut = 2000
     private var isListening = false
     val speechListener = SpeechRecognitionListener(
-            onResultReady, {
-        if (isListening) {
-            recreateVoiceRecord()
-        } else {
-            muteVolume(false)
+            onResultReady, object : SpeechRecognitionListener.OnHandleSpeechError{
+        override fun onErrorNoMatch() {
+            if (isListening) {
+                recreateVoiceRecord()
+            } else {
+                muteVolume(false)
+            }
         }
-    }, {
-        muteVolume(it)
-    }, onErrorTimeOut)
+
+        override fun onMuteVolume(shouldMute: Boolean) {
+            muteVolume(shouldMute)
+        }
+
+        override fun onErrorTimeOut() {
+            callback.onErrorTimeOut()
+        }
+
+        override fun onErrorNoNetWork() {
+            callback.onNoNetWork()
+        }
+    })
 
     init {
         speechIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName)
@@ -90,17 +97,17 @@ class SpeechRecognizerManager(
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
         speechRecognizer.setRecognitionListener(speechListener)
         speechRecognizer.startListening(speechIntent)
-        onRecreateVoiceRecord.onRecreate()
+        callback.onRebindToSpeechRecognitionView()
     }
 
     fun stopListening() {
         speechRecognizer.let {
+            it.stopListening()
+            it.cancel()
             speechRecognizer.destroy()
             speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
             speechRecognizer.setRecognitionListener(speechListener)
-            onRecreateVoiceRecord.onRecreate()
-            it.stopListening()
-            it.cancel()
+            callback.onRebindToSpeechRecognitionView()
         }
         isListening = false
         muteVolume(false)
@@ -137,6 +144,12 @@ class SpeechRecognizerManager(
     }
     interface OnSpeechError{
         fun onErrorTimeOut()
+    }
+
+    interface SpeechRecognizerManagerCallBack {
+        fun onNoNetWork()
+        fun onErrorTimeOut()
+        fun onRebindToSpeechRecognitionView()
     }
 
 }
