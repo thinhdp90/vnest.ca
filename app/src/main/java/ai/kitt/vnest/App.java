@@ -125,6 +125,10 @@ public class App extends Application implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityDestroyed(Activity activity) {
+        Log.e("Activity", "onDestroy");
+        Intent intent = new Intent();
+        intent.setAction(TriggerBroadCast.ACTION_RESTART_SERVICE);
+        sendBroadcast(intent);
 
     }
 }

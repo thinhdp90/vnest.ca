@@ -48,7 +48,11 @@ public class TriggerOfflineService extends Service {
             intent.putExtra(KEY_START, WAKE_UP);
         }
         try {
-            context.startService(intent);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent);
+            }else {
+                context.startService(intent);
+            }
         } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
         }
@@ -83,10 +87,12 @@ public class TriggerOfflineService extends Service {
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onCreate() {
         super.onCreate();
         initAlexaDetect();
+        startForceGroundServiceWithNotification();
     }
 
     @SuppressLint("HandlerLeak")
@@ -138,7 +144,7 @@ public class TriggerOfflineService extends Service {
             }
         }
         startOfflineRecording();
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     private void initAlexaDetect() {
@@ -200,5 +206,8 @@ public class TriggerOfflineService extends Service {
         stopOfflineRecording();
         recordingThread = null;
         playbackThread = null;
+        Intent intent = new Intent();
+        intent.setAction(TriggerBroadCast.ACTION_RESTART_SERVICE);
+        sendBroadcast(intent);
     }
 }

@@ -1,6 +1,8 @@
 package ai.kitt.snowboy.service;
 
 import android.Manifest;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -27,6 +29,7 @@ public class TriggerBroadCast extends BroadcastReceiver {
         intentFilter.addAction(ACTION_RESTART_SERVICE);
         intentFilter.addAction("android.net.wifi.WIFI_STATE_CHANGED");
         intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+        intentFilter.addAction("android.intent.action.MEDIA_BUTTON");
         context.registerReceiver(triggerBroadCast, intentFilter);
         return triggerBroadCast;
     }
@@ -63,12 +66,16 @@ public class TriggerBroadCast extends BroadcastReceiver {
         if (action.equals(ACTION_START_APP)) {
             Log.e(TAG, "Start app from broadcast");
             try {
-                Intent i = new Intent(context, Class.forName("ai.kitt.vnest.feature.activitymain.MainActivity"));
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setPackage("ai.kitt.snowboy");
+                i.addCategory(Intent.CATEGORY_LAUNCHER);
+                i.setAction(Intent.ACTION_MAIN);
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK) ;
                 context.startActivity(i);
             } catch (Exception e) {
                 Log.e(TAG, e.getMessage(), e);
             }
+
             return;
         }
         if (action.equals(ACTION_TURN_MIC_OFF)) {
@@ -82,6 +89,7 @@ public class TriggerBroadCast extends BroadcastReceiver {
             }
         }
     }
+
 
     public interface OnHandleTrigger {
         void onActionTurnOn();

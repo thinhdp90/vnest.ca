@@ -35,17 +35,18 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".feature.splash.SplashActivity"
-            android:launchMode="singleTask"
+            android:launchMode="singleInstance"
             android:screenOrientation="sensorLandscape"
             android:theme="@style/AppTheme.SplashTheme">
         </activity>
         <activity
+            android:launchMode="singleTop"
             android:name=".feature.activitymain.MainActivity"
-            android:launchMode="singleInstance"
             android:screenOrientation="sensorLandscape">
             <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
                 <action android:name="android.intent.action.MAIN" />
-
+                <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

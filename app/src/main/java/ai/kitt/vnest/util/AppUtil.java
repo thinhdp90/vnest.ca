@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import ai.kitt.vnest.basedata.database.sharepreference.VnestSharePreference;
 import ai.kitt.vnest.basedata.entity.Poi;
@@ -16,7 +17,32 @@ import ai.kitt.vnest.basedata.entity.Poi;
 public class AppUtil {
     public static final String MAPS_NATIVEL_APP_ID = "com.navitel";
     public static final String MAPS_GOOGLE_MAP_APP_ID = "com.google.android.apps.maps";
-    public static final String MAPS_VIET_MAP_APP_ID = "com.vietmap";
+    public static final String MAPS_VIET_MAP_APP_ID = "com.vietmap.s1OBU";
+
+    public static Intent buildVietMapIntent(Poi paramAddress) {
+        Intent intent = new Intent();
+        intent.setAction("PAPAGO_BROADCAST_RECV");
+        intent.putExtra("KEY_TYPE", 10038);
+        intent.putExtra("POINAME", paramAddress.getTitle());
+        intent.putExtra("LAT", paramAddress.getGps().getLatitude());
+        intent.putExtra("LON", paramAddress.getGps().getLongitude());
+        intent.putExtra("DEV", 0);
+        intent.putExtra("STYLE", 0);
+        intent.putExtra("SOURCE_APP", "third-party");
+        return intent;
+    }
+    public static void openVietMap(Poi poi, Context context) {
+        Intent vietMapIntent = buildVietMapIntent(poi);
+        context.sendBroadcast(vietMapIntent);
+        Intent vietMap = new Intent();
+        vietMap.setPackage(MAPS_VIET_MAP_APP_ID);
+//        if(vietMap.resolveActivity(context.getPackageManager()) == null) {
+//            String location = poi.getGps().getLatitude() + "," + poi.getGps().getLongitude();
+//            navigationToLocation(location,context);
+//        } else  {
+            context.startActivity(vietMap);
+//        }
+    }
 
     public static void navigationOtPointByName(Double latitude, Double longitude, Context context) {
         Uri intentUri = Uri.parse("google.navigation:ll" + latitude + "," + longitude);
@@ -34,7 +60,12 @@ public class AppUtil {
 
     public static void navigationToPoint(Poi poi, Context context) {
         String location = poi.getGps().getLatitude() + "," + poi.getGps().getLongitude();
-        navigationToLocation(location, context);
+        String packageName = VnestSharePreference.getInstance(context).getMapAppId();
+        if(packageName.equalsIgnoreCase(MAPS_VIET_MAP_APP_ID)) {
+            openVietMap(poi, context);
+        } else {
+            navigationToLocation(location, context);
+        }
     }
 
     public static void navigationToLocation(String location, Context context) {

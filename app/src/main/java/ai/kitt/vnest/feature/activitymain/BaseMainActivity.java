@@ -1095,10 +1095,6 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
 
     @Override
     protected void onDestroy() {
-        Log.e(LOG_TAG, "onDestroy");
-        Intent intent = new Intent();
-        intent.setAction(TriggerBroadCast.ACTION_RESTART_SERVICE);
-        sendBroadcast(intent);
         super.onDestroy();
         if (textToSpeech != null) {
             textToSpeech.shutDown();
