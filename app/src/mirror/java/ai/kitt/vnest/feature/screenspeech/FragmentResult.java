@@ -11,7 +11,6 @@ import androidx.transition.Transition;
 import androidx.transition.TransitionManager;
 
 import ai.kitt.vnest.R;
-import ai.kitt.vnest.feature.activitymain.MainActivity;
 import ai.kitt.vnest.feature.screenspeech.adapters.AdapterAddressResult;
 
 public class FragmentResult extends BaseFragmentResult {

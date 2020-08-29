@@ -25,7 +25,7 @@ import java.util.Objects;
 
 import ai.kitt.vnest.R;
 import ai.kitt.vnest.feature.screenhome.FragmentHome;
-import ai.kitt.vnest.feature.screenspeech.FragmentResult;
+
 
 public class MainActivity extends BaseMainActivity {
     private FrameLayout fragmentContainer;

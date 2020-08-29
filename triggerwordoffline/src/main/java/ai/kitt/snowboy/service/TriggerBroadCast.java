@@ -1,13 +1,17 @@
 package ai.kitt.snowboy.service;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.util.Log;
+
+import java.util.List;
 
 public class TriggerBroadCast extends BroadcastReceiver {
     public final static String ACTION_TURN_MIC_ON = "turn on";
@@ -51,7 +55,7 @@ public class TriggerBroadCast extends BroadcastReceiver {
 
         final android.net.NetworkInfo networkInfo = connMgr
                 .getActiveNetworkInfo();
-        if (networkInfo!=null && networkInfo.isConnected()) {
+        if (networkInfo != null && networkInfo.isConnected()) {
             onHandleTrigger.onNetWorkAvailable();
         }
 
@@ -63,9 +67,11 @@ public class TriggerBroadCast extends BroadcastReceiver {
         if (action.equals(ACTION_START_APP)) {
             Log.e(TAG, "Start app from broadcast");
             try {
-                Intent i = new Intent(context, Class.forName("ai.kitt.vnest.feature.activitymain.MainActivity"));
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(i);
+                PackageManager pm = context.getPackageManager();
+                Intent launchIntent = pm.getLaunchIntentForPackage("ai.kitt.snowboy");
+                assert launchIntent != null;
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(launchIntent);
             } catch (Exception e) {
                 Log.e(TAG, e.getMessage(), e);
             }
@@ -77,7 +83,7 @@ public class TriggerBroadCast extends BroadcastReceiver {
             return;
         }
         if (action.equals(ACTION_RESTART_SERVICE)) {
-            if(!TriggerOfflineService.isServiceRunning) {
+            if (!TriggerOfflineService.isServiceRunning) {
                 TriggerOfflineService.startService(context, true);
             }
         }
