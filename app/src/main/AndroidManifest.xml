@@ -55,6 +55,7 @@
 
         <receiver android:name="com.vnest.txznet.smartadapter.receiver.TXZReceiver" />
         <receiver android:name=".receiver.McuReceiver" />
+
         <receiver android:name=".receiver.VoiceDialReceiver" >
             <intent-filter>
                 <action android:name="com.jsbd.serial.mcutoapp"/>
