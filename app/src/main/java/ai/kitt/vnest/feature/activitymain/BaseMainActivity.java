@@ -77,6 +77,7 @@ import ai.kitt.vnest.R;
 import ai.kitt.vnest.basedata.api.repository.ActiveRepo;
 import ai.kitt.vnest.feature.activitymain.adapters.DefaultAssistantAdapter;
 import ai.kitt.vnest.feature.activitymain.adapters.ItemNavigationAdapter;
+import ai.kitt.vnest.feature.screencheckcarvilolations.WebViewFragment;
 import ai.kitt.vnest.feature.screenhome.FragmentHome;
 import ai.kitt.vnest.feature.screensettings.FragmentSettings;
 import ai.kitt.vnest.feature.screenspeech.FragmentResult;
@@ -298,7 +299,16 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
                         textSpeech = KEY_NAVIGATION;
                         break;
                     case 2:
-                        textSpeech = KEY_GASOLINE_HISTORY;
+//                        textSpeech = KEY_GASOLINE_HISTORY;
+                        if (mDrawerLayout != null) {
+                            mDrawerLayout.closeDrawer(Gravity.LEFT);
+                        }
+                        getSupportFragmentManager().beginTransaction()
+                                .setCustomAnimations(R.anim.grow_from_bottom, R.anim.shrink_from_top, R.anim.grow_from_bottom, R.anim.shrink_from_top)
+                                .replace(R.id.fragment_container, WebViewFragment.startThis("http://www.csgt.vn/tra-cuu-phuong-tien-vi-pham.html?&LoaiXe=2&BienKiemSoat=36d1-03176"), WebViewFragment.TAG)
+                                .addToBackStack("1")
+                                .commit();
+
                         break;
                     case 3:
                         if (mDrawerLayout != null) {

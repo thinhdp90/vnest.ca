@@ -10,6 +10,8 @@ class WebViewFragment : BaseFragment(R.layout.fragment_web_view) {
     companion object {
         const val EXTRA_URL = "extra_url"
 
+        @JvmField
+        val TAG: String = WebViewFragment::class.java.name
         @JvmStatic
         fun startThis(url: String?): WebViewFragment = WebViewFragment().apply {
             val bundle = arguments ?: Bundle()
@@ -21,7 +23,7 @@ class WebViewFragment : BaseFragment(R.layout.fragment_web_view) {
     val url: String by lazy { arguments?.getString(EXTRA_URL)!! }
     override fun initView(view: View) {
         view.webView.settings.javaScriptEnabled = true
-        view.webView.addJavascriptInterface(WebViewJavaScriptInterface(), "HtmlReader")
+        view.webView.addJavascriptInterface(WebViewJavaScriptInterface(), WebViewJavaScriptInterface.JAVA_SCRIPT_INTERFACE_FUNC)
         view.webView.webViewClient = WebViewClient(requireContext())
     }
 

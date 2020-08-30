@@ -130,6 +130,8 @@ dependencies {
     implementation 'com.blankj:utilcodex:1.29.0'
     implementation 'org.greenrobot:eventbus:3.2.0'
     implementation 'org.apache.commons:commons-lang3:3.6'
+    implementation 'org.jsoup:jsoup:1.13.1'
+    implementation 'com.google.android.gms:play-services-vision:20.1.2'
 
     implementation project(':updatelibrary')
     implementation project(':opencam')

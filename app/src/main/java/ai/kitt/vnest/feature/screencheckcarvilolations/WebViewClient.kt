@@ -27,6 +27,7 @@ class WebViewClient (val context: Context) : WebViewClient() {
         if(this::progressDialog.isInitialized && progressDialog.isShowing) {
             progressDialog.dismiss()
         }
+        view?.loadUrl("javascript:window.${WebViewJavaScriptInterface.JAVA_SCRIPT_INTERFACE_FUNC}.showHTML(document.getElementsByTagName('body')[0].innerHTML);");
     }
 
 }
