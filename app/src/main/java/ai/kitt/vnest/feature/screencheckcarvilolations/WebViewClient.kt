@@ -23,7 +23,6 @@ class WebViewClient (val context: Context) : WebViewClient() {
     }
 
     override fun onPageFinished(view: WebView?, url: String?) {
-        super.onPageFinished(view, url)
         if(this::progressDialog.isInitialized && progressDialog.isShowing) {
             progressDialog.dismiss()
         }

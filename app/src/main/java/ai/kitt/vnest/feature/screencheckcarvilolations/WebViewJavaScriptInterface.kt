@@ -1,11 +1,14 @@
 package ai.kitt.vnest.feature.screencheckcarvilolations
 
 import ai.kitt.vnest.App
+import ai.kitt.vnest.R
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.os.Message
 import android.util.Log
 import android.webkit.JavascriptInterface
+import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -15,9 +18,9 @@ import com.google.android.gms.vision.Frame
 import com.google.android.gms.vision.text.TextRecognizer
 import org.jsoup.Jsoup
 
-class WebViewJavaScriptInterface() {
+class WebViewJavaScriptInterface(val fragment: WebViewFragment) {
     companion object{
-        const val JAVA_SCRIPT_INTERFACE_FUNC = "get html"
+        const val JAVA_SCRIPT_INTERFACE_FUNC = "getHtml"
     }
     @JavascriptInterface
     fun showHTML(html: String) {
@@ -25,31 +28,13 @@ class WebViewJavaScriptInterface() {
         val document = Jsoup.parse(html)
         val text = document.select("#bodyPrint")[0]
         Log.e("Text", text.select("div")[0].text())
-        val src = document.select(".formBSX .item .flex")[0].select("img")[0].attr("src")
-        val textRecognizer = TextRecognizer.Builder(App.get())
-                .build()
+        val src = document.select(".flex")[0].select("img")[0].attr("src")
 
-        Glide.with(App.get())
-                .asBitmap()
-                .addListener(object : RequestListener<Bitmap> {
-                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>?, isFirstResource: Boolean): Boolean {
-
-                        return false
-                    }
-
-                    override fun onResourceReady(resource: Bitmap?, model: Any?, target: Target<Bitmap>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
-                        val imageFrame = Frame.Builder()
-                                .setBitmap(resource)
-                                .build()
-                        val textBlocks = textRecognizer.detect(imageFrame)
-                        for (i in 0 until textBlocks.size()) {
-                            Log.e("Text", textBlocks.get(i).value)
-                        }
-                        return false
-                    }
-
-
-                }).submit()
-
+        Log.e("src",src)
+        val message = Message()
+        message.what = 1
+        message.obj = src
+        message.target = fragment.handle
+        message.sendToTarget()
     }
 }

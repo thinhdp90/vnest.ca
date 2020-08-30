@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<WebView
-    android:id="@+id/webView"
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-</WebView>
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:weightSum="10">
+    <WebView
+        android:id="@+id/webView"
+        android:layout_weight="5"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+    </WebView>
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="5"/>
+</LinearLayout>
