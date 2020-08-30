@@ -56,7 +56,7 @@ android {
         multiAiService {
             dimension "master_ai_service"
             buildConfigField "boolean", "multi_ai_service", "true"
-            buildConfigField "String", "AI_CONFIG_ACCESS_TOKEN", '"5b5c9649593ac8e8f158f9da9e56e6d3a5e0c5a1"'
+            buildConfigField "String", "AI_CONFIG_ACCESS_TOKEN", '"73cf2510f55c425eb5f5d8bb20d6d3e7"'
         }
     }
     applicationVariants.all { variant ->
@@ -126,10 +126,15 @@ dependencies {
     implementation "com.google.android.material:material:$material_version"
     implementation 'com.google.firebase:firebase-analytics:17.4.4'
     implementation 'com.google.firebase:firebase-crashlytics:17.1.1'
+    implementation 'com.jakewharton.timber:timber:4.7.1'
+    implementation 'com.blankj:utilcodex:1.29.0'
+    implementation 'org.greenrobot:eventbus:3.2.0'
+    implementation 'org.apache.commons:commons-lang3:3.6'
 
     implementation project(':updatelibrary')
     implementation project(':opencam')
     implementation project(':VTV')
     implementation project(':triggerwordoffline')
     implementation project(':baseui')
+    implementation project(':txznet')
 }

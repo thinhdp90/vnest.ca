@@ -1,15 +1,16 @@
 package ai.kitt.snowboy.service;
 
 import android.Manifest;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.util.Log;
+
+import java.util.List;
 
 public class TriggerBroadCast extends BroadcastReceiver {
     public final static String ACTION_TURN_MIC_ON = "turn on";
@@ -29,7 +30,6 @@ public class TriggerBroadCast extends BroadcastReceiver {
         intentFilter.addAction(ACTION_RESTART_SERVICE);
         intentFilter.addAction("android.net.wifi.WIFI_STATE_CHANGED");
         intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
-        intentFilter.addAction("android.intent.action.MEDIA_BUTTON");
         context.registerReceiver(triggerBroadCast, intentFilter);
         return triggerBroadCast;
     }
@@ -66,16 +66,14 @@ public class TriggerBroadCast extends BroadcastReceiver {
         if (action.equals(ACTION_START_APP)) {
             Log.e(TAG, "Start app from broadcast");
             try {
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setPackage("ai.kitt.snowboy");
-                i.addCategory(Intent.CATEGORY_LAUNCHER);
-                i.setAction(Intent.ACTION_MAIN);
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK) ;
-                context.startActivity(i);
+                PackageManager pm = context.getPackageManager();
+                Intent launchIntent = pm.getLaunchIntentForPackage("ai.kitt.snowboy");
+                assert launchIntent != null;
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(launchIntent);
             } catch (Exception e) {
                 Log.e(TAG, e.getMessage(), e);
             }
-
             return;
         }
         if (action.equals(ACTION_TURN_MIC_OFF)) {
@@ -84,12 +82,11 @@ public class TriggerBroadCast extends BroadcastReceiver {
             return;
         }
         if (action.equals(ACTION_RESTART_SERVICE)) {
-            if(!TriggerOfflineService.isServiceRunning) {
+            if (!TriggerOfflineService.isServiceRunning) {
                 TriggerOfflineService.startService(context, true);
             }
         }
     }
-
 
     public interface OnHandleTrigger {
         void onActionTurnOn();

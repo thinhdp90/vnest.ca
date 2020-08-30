@@ -1,25 +1,27 @@
 package ai.kitt.vnest.feature.screenhome;
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.RecyclerView;
-
-import ai.kitt.vnest.R;
-import ai.kitt.vnest.feature.activitymain.MainActivity;
-import ai.kitt.vnest.feature.activitymain.ViewModel;
-import ai.kitt.vnest.basedata.entity.Message;
 
 import java.util.Calendar;
-import java.util.Objects;
+import java.util.List;
+
+import ai.kitt.vnest.App;
+import ai.kitt.vnest.R;
+import ai.kitt.vnest.basedata.entity.Message;
+import ai.kitt.vnest.feature.activitymain.MainActivity;
+import ai.kitt.vnest.feature.activitymain.ViewModel;
 
 public class FragmentHome extends Fragment {
     private static final String LOG_TAG = "VNest";
@@ -32,7 +34,7 @@ public class FragmentHome extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewModel = new ViewModelProvider(Objects.requireNonNull(getActivity())).get(ViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(ViewModel.class);
     }
 
     @Nullable

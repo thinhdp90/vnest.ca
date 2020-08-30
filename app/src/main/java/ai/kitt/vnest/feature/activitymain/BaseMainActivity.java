@@ -476,11 +476,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
 
                 try {
                     AIResponse aiRes;
-                    if (BuildConfig.multi_ai_service && contexts != null) {
-                        aiRes = getChildAIService(currentAiChildService).textRequest(aiRequest);
-                    } else {
-                        aiRes = aiService.textRequest(aiRequest);
-                    }
+                    aiRes = aiService.textRequest(aiRequest);
                     Log.d(LOG_TAG, gson.toJson(aiRes));
                     String action = aiRes.getResult().getAction();
                     Log.e(LOG_TAG, "===== action:" + action);
@@ -493,7 +489,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Loca
                     } catch (Exception e) {
                         Log.e(LOG_TAG, e.getMessage(), e);
                     }
-                    Log.e("Response",aiRes.getResult().toString());
+                    Log.e("Response", aiRes.getResult().toString());
                     switch (action) {
                         case OPEN_BANK_PLACE_UN_KNOW_SPEECH:
                         case OPEN_DRINK_PLACE_UN_KNOW_SPEECH:

@@ -1,3 +1,4 @@
+include ':txznet'
 include ':baseui'
 include ':triggerwordoffline'
 include ':VTV'
